@@ -1,0 +1,2277 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="slides-format" content="viewport" />
+    <title>Виконавське дихання. Поняття «Опора»</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style type="text/tailwindcss">
+      @theme {
+        --color-bg: #0d1b3e;
+        --color-bg-deep: #070f24;
+        --color-surface: #152550;
+        --color-text: #f0ecd8;
+        --color-text-secondary: #c8c0a0;
+        --color-text-muted: #8a8070;
+        --color-accent-1: #d4a843;
+        --color-accent-2: #f0d080;
+        --color-accent-3: #7ec8e3;
+        --color-glass-bg: rgba(255, 255, 255, 0.06);
+        --color-glass-border: rgba(255, 255, 255, 0.1);
+        --color-vignette: rgba(0, 0, 0, 0.45);
+        --font-display: "Playfair Display", serif;
+        --font-body: "DM Sans", sans-serif;
+      }
+    </style>
+
+    <style>
+      :root {
+        --color-bg: #0d1b3e;
+        --color-text: #f0ecd8;
+        --glow-color-rgb: 212, 168, 67;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: var(--color-bg);
+        margin: 0;
+      }
+      body {
+        font-family: var(--font-body);
+        color: var(--color-text);
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+      }
+      .deck {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+      }
+      .slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--color-bg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transform: scale(0.95);
+        transition:
+          opacity 0.7s ease,
+          transform 0.7s ease;
+        pointer-events: none;
+        overflow: hidden;
+      }
+      .slide.active {
+        opacity: 1;
+        transform: scale(1);
+        pointer-events: all;
+      }
+      .slide > .content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 1100px;
+        padding: clamp(1.5rem, 4vw, 3.5rem);
+      }
+      .nav-controls {
+        position: fixed;
+        bottom: 28px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        z-index: 100;
+        background: var(--color-glass-bg);
+        backdrop-filter: blur(10px);
+        padding: 10px 24px;
+        border-radius: 40px;
+        border: 1px solid var(--color-glass-border);
+      }
+      .nav-btn {
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: var(--color-glass-bg);
+        color: var(--color-accent-1);
+        border-radius: 50%;
+        font-size: 1.2rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s;
+      }
+      .nav-btn:hover {
+        background: var(--color-glass-border);
+      }
+      .slide-dots {
+        display: flex;
+        gap: 6px;
+      }
+      .slide-dots .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--color-glass-border);
+        cursor: pointer;
+        transition:
+          background 0.3s,
+          transform 0.3s;
+      }
+      .slide-dots .dot.active {
+        background: var(--color-accent-1);
+        transform: scale(1.3);
+      }
+      .slide-counter {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        min-width: 40px;
+        text-align: center;
+      }
+      .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      .text-glow {
+        text-shadow:
+          0 0 20px rgba(212, 168, 67, 0.5),
+          0 0 40px rgba(212, 168, 67, 0.2);
+      }
+      .stat-glow {
+        text-shadow:
+          0 0 30px rgba(212, 168, 67, 0.6),
+          0 0 60px rgba(212, 168, 67, 0.25);
+      }
+      @keyframes glow-pulse {
+        0%,
+        100% {
+          text-shadow:
+            0 0 20px rgba(212, 168, 67, 0.5),
+            0 0 40px rgba(212, 168, 67, 0.2);
+        }
+        50% {
+          text-shadow:
+            0 0 30px rgba(212, 168, 67, 0.8),
+            0 0 60px rgba(212, 168, 67, 0.3);
+        }
+      }
+      .glow-pulse {
+        animation: glow-pulse 3s ease-in-out infinite;
+      }
+
+      @keyframes float-slow {
+        0% {
+          transform: translate(0, 0) scale(1);
+        }
+        25% {
+          transform: translate(60px, -50px) scale(1.12);
+        }
+        50% {
+          transform: translate(-40px, 40px) scale(0.9);
+        }
+        75% {
+          transform: translate(50px, 20px) scale(1.08);
+        }
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+      }
+      @keyframes float-drift {
+        0% {
+          transform: translate(0, 0) scale(1) rotate(0deg);
+        }
+        33% {
+          transform: translate(-50px, -60px) scale(1.15) rotate(3deg);
+        }
+        66% {
+          transform: translate(40px, 30px) scale(0.88) rotate(-2deg);
+        }
+        100% {
+          transform: translate(0, 0) scale(1) rotate(0deg);
+        }
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-15px);
+        }
+      }
+      .gradient-mesh {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      .blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        animation: float-slow 10s ease-in-out infinite;
+      }
+      .blob:nth-child(2) {
+        animation: float-drift 14s ease-in-out infinite;
+      }
+      .blob:nth-child(3) {
+        animation: float-slow 18s ease-in-out infinite reverse;
+      }
+
+      .slide::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+        background-repeat: repeat;
+        background-size: 256px 256px;
+        opacity: 0.03;
+        mix-blend-mode: overlay;
+      }
+      .slide::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background: radial-gradient(
+          ellipse at center,
+          transparent 50%,
+          var(--color-vignette) 100%
+        );
+      }
+
+      .myth-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(220, 38, 38, 0.15);
+        border: 1px solid rgba(220, 38, 38, 0.3);
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #f87171;
+        margin-bottom: 1rem;
+      }
+      .truth-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(34, 197, 94, 0.12);
+        border: 1px solid rgba(34, 197, 94, 0.25);
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #4ade80;
+        margin-bottom: 0.75rem;
+      }
+      .glass-card {
+        background: var(--color-glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--color-glass-border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition:
+          transform 0.3s,
+          box-shadow 0.3s;
+      }
+      .glass-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+      }
+      .accent-border {
+        border-left: 4px solid var(--color-accent-1);
+      }
+      .section-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--color-accent-1);
+        margin-bottom: 0.5rem;
+      }
+
+      .bar-fill-anim {
+        height: 100%;
+        border-radius: 4px;
+        background: linear-gradient(
+          90deg,
+          var(--color-accent-1),
+          var(--color-accent-2)
+        );
+        width: 0%;
+        transition: width 0.8s ease;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.2s !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      class="mouse-spotlight"
+      style="
+        position: fixed;
+        inset: 0;
+        z-index: 99;
+        pointer-events: none;
+      "></div>
+
+    <div class="deck">
+      <!-- SLIDE 1: TITLE -->
+      <div class="slide slide-1 active" data-slide="1">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 550px;
+              height: 550px;
+              top: -120px;
+              right: -100px;
+              background: var(--color-accent-1);
+              opacity: 0.14;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 350px;
+              height: 350px;
+              bottom: -80px;
+              left: -60px;
+              background: var(--color-accent-3);
+              opacity: 0.1;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 200px;
+              height: 200px;
+              top: 40%;
+              left: 20%;
+              background: var(--color-accent-2);
+              opacity: 0.08;
+            "></div>
+        </div>
+        <canvas
+          class="particle-canvas"
+          style="position: absolute; inset: 0; z-index: 1"></canvas>
+        <div class="content text-center">
+          <div
+            class="text-[90px] mb-4 animate-[float_3s_ease-in-out_infinite] reveal">
+            🎺
+          </div>
+          <div class="section-label reveal">
+            Методичний матеріал для духовиків
+          </div>
+          <h1
+            class="font-display text-[clamp(2.4rem,5.5vw,4.2rem)] font-black bg-linear-to-br from-accent-1 via-accent-2 to-accent-1 bg-clip-text text-transparent tracking-tight mb-4 reveal">
+            Виконавське дихання
+          </h1>
+          <h2
+            class="font-display text-[clamp(1.4rem,3vw,2.2rem)] font-normal text-text-secondary mb-6 reveal">
+            Поняття «Опора»
+          </h2>
+          <p class="text-text-muted text-sm tracking-[5px] uppercase reveal">
+            Духові інструменти · Педагогіка виконавства
+          </p>
+        </div>
+      </div>
+
+      <!-- SLIDE 2: Порівняння двох видів дихання -->
+      <div class="slide slide-2" data-slide="2">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 400px;
+              height: 400px;
+              top: -80px;
+              right: -80px;
+              background: var(--color-accent-1);
+              opacity: 0.08;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 280px;
+              height: 280px;
+              bottom: -60px;
+              left: -40px;
+              background: var(--color-accent-3);
+              opacity: 0.07;
+            "></div>
+        </div>
+        <div class="content">
+          <div class="section-label reveal">Вступ</div>
+          <h2
+            class="font-display text-[clamp(1.8rem,3.5vw,2.6rem)] font-bold mb-2 reveal">
+            Звичайне vs. Виконавське
+          </h2>
+          <p class="text-text-muted text-sm mb-6 reveal">
+            Дихання духовика — це не просто «набрати повітря». Це активна,
+            свідома дія.
+          </p>
+          <div class="grid grid-cols-2 gap-5 reveal">
+            <div class="glass-card">
+              <div class="text-2xl mb-2">😴</div>
+              <div
+                class="text-accent-3 font-bold text-sm uppercase tracking-wider mb-3">
+                Звичайне дихання
+              </div>
+              <ul class="space-y-2 text-sm text-text-secondary">
+                <li class="flex items-start gap-2">
+                  <span class="text-text-muted mt-0.5">→</span> Автоматичне,
+                  неусвідомлене
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-text-muted mt-0.5">→</span> ~0,5 л за вдих
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-text-muted mt-0.5">→</span> Видих — пасивний
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-text-muted mt-0.5">→</span> Вдих ≈ Видих за
+                  часом
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-text-muted mt-0.5">→</span> ~18 циклів /
+                  хвилину
+                </li>
+              </ul>
+            </div>
+            <div
+              class="glass-card"
+              style="border-color: rgba(212, 168, 67, 0.3)">
+              <div class="text-2xl mb-2">🎼</div>
+              <div
+                class="text-accent-1 font-bold text-sm uppercase tracking-wider mb-3">
+                Виконавське дихання
+              </div>
+              <ul class="space-y-2 text-sm text-text-secondary">
+                <li class="flex items-start gap-2">
+                  <span class="text-accent-1 mt-0.5">→</span> Свідоме та
+                  керовано
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-accent-1 mt-0.5">→</span> До 5–6 л за вдих
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-accent-1 mt-0.5">→</span> Видих —
+                  <strong>активний</strong>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-accent-1 mt-0.5">→</span> Видих значно
+                  довший
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-accent-1 mt-0.5">→</span> Ритм
+                  підпорядкований музиці
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="glass-card accent-border mt-5 reveal">
+            <p class="text-sm text-text-secondary">
+              💡 <strong class="text-text">Ключова думка:</strong> У звичайному
+              диханні видих — пасивний (м'язи розслабляються). У виконавця видих
+              — <span class="text-accent-1 font-semibold">активний</span>: м'язи
+              свідомо керують потоком повітря.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 3: МІФ 1 -->
+      <div class="slide slide-3" data-slide="3">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 380px;
+              height: 380px;
+              top: -60px;
+              right: -60px;
+              background: #dc2626;
+              opacity: 0.07;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 240px;
+              height: 240px;
+              bottom: -50px;
+              left: -30px;
+              background: var(--color-accent-1);
+              opacity: 0.06;
+            "></div>
+        </div>
+        <div class="content">
+          <div class="myth-badge reveal">❌ МІФ №1</div>
+          <h2
+            class="font-display text-[clamp(1.6rem,3.2vw,2.4rem)] font-bold mb-5 reveal">
+            «Ти маєш дихати діафрагмою»
+          </h2>
+          <div class="grid grid-cols-2 gap-5">
+            <div
+              class="glass-card reveal"
+              style="border-color: rgba(220, 38, 38, 0.25)">
+              <div
+                class="text-red-400 font-bold text-sm uppercase tracking-wider mb-3">
+                ⚡ Чому це хибно
+              </div>
+              <ul class="space-y-3 text-sm text-text-secondary">
+                <li>
+                  • Діафрагма — м'яз <strong class="text-text">вдиху</strong>.
+                  На видиху вона просто розслабляється.
+                </li>
+                <li>
+                  • Ми <strong class="text-text">не можемо</strong> напряму
+                  «відчути» або свідомо керувати діафрагмою.
+                </li>
+                <li>
+                  • Вона
+                  <strong class="text-red-400">не штовхає</strong> повітря
+                  назовні!
+                </li>
+              </ul>
+            </div>
+            <div
+              class="glass-card reveal"
+              style="border-color: rgba(74, 222, 128, 0.25)">
+              <div class="truth-badge">✅ Правда</div>
+              <p class="text-sm text-text-secondary mb-3">
+                Справжні «двигуни» видиху — це
+                <strong class="text-accent-2">м'язи черевного пресу</strong>:
+                прямі, косі, поперечні.
+              </p>
+              <p class="text-sm text-text-muted">
+                Коли педагог каже «тисни на діафрагму» → учень напружує прес →
+                виникає зайвий затиск.
+              </p>
+            </div>
+          </div>
+          <div class="glass-card accent-border mt-5 reveal">
+            <p class="text-sm text-text-secondary">
+              💬
+              <strong class="text-accent-2">Правильне формулювання:</strong>
+              «Задій ребра, живіт і спину при вдиху» — а не «дихай діафрагмою».
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 4: МІФ 2 & 3 -->
+      <div class="slide slide-4" data-slide="4">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 350px;
+              height: 350px;
+              top: -50px;
+              right: -50px;
+              background: #dc2626;
+              opacity: 0.07;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 220px;
+              height: 220px;
+              bottom: -40px;
+              left: -30px;
+              background: var(--color-accent-3);
+              opacity: 0.06;
+            "></div>
+        </div>
+        <div class="content">
+          <div class="section-label reveal">Руйнуємо стереотипи</div>
+          <h2
+            class="font-display text-[clamp(1.5rem,3vw,2.2rem)] font-bold mb-5 reveal">
+            Ще два поширених міти
+          </h2>
+          <div class="grid grid-cols-2 gap-5">
+            <div class="glass-card reveal">
+              <div class="myth-badge" style="margin-bottom: 0.75rem">
+                ❌ МІФ №2
+              </div>
+              <h3 class="font-display text-base font-bold mb-3 text-accent-2">
+                «Підніми грудну клітку — це глибокий вдих»
+              </h3>
+              <ul class="space-y-2 text-sm text-text-secondary">
+                <li>
+                  • Підняття плечей — ознака
+                  <span class="text-red-400">поверхневого</span> дихання
+                </li>
+                <li>
+                  • Правильний вдих іде
+                  <span class="text-accent-1 font-semibold">знизу вгору</span>:
+                  живіт → ребра → груди
+                </li>
+                <li>• Уявіть: наповнюєте глечик знизу</li>
+              </ul>
+            </div>
+            <div class="glass-card reveal">
+              <div class="myth-badge" style="margin-bottom: 0.75rem">
+                ❌ МІФ №3
+              </div>
+              <h3 class="font-display text-base font-bold mb-3 text-accent-2">
+                «Чим більше повітря — тим краще»
+              </h3>
+              <ul class="space-y-2 text-sm text-text-secondary">
+                <li>
+                  • Переповнені легені
+                  <span class="text-red-400">перенапружують</span> м'язи
+                </li>
+                <li>
+                  • Докшицер:
+                  <em>«Залишайте резерв і на вдиху, і на видиху»</em>
+                </li>
+                <li>• Не видихайте до останньої краплі!</li>
+              </ul>
+            </div>
+          </div>
+          <div class="glass-card accent-border mt-5 reveal">
+            <p class="text-sm text-text-secondary">
+              🎯 <strong class="text-text">Принцип резерву:</strong> Грайте з
+              «запасом» близько 30% — це забезпечить плавніший вдих і кращий
+              контроль.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 5: МІФ 4, 5, 6 -->
+      <div class="slide slide-5" data-slide="5">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 320px;
+              height: 320px;
+              top: -50px;
+              right: -50px;
+              background: #dc2626;
+              opacity: 0.07;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 200px;
+              height: 200px;
+              bottom: -40px;
+              left: -30px;
+              background: var(--color-accent-1);
+              opacity: 0.06;
+            "></div>
+        </div>
+        <div class="content">
+          <div class="section-label reveal">Руйнуємо стереотипи</div>
+          <h2
+            class="font-display text-[clamp(1.5rem,3vw,2.2rem)] font-bold mb-5 reveal">
+            Ще три важливих міти
+          </h2>
+          <div class="grid grid-cols-3 gap-4">
+            <div class="glass-card reveal">
+              <div
+                class="myth-badge"
+                style="
+                  font-size: 0.65rem;
+                  padding: 4px 10px;
+                  margin-bottom: 0.6rem;
+                ">
+                ❌ МІФ №4
+              </div>
+              <h3 class="font-bold text-sm text-accent-2 mb-2">
+                «Гучний вдих = глибокий»
+              </h3>
+              <p class="text-xs text-text-secondary">
+                Гучний вдих — сигнал затиску в горлі. Золоте правило:
+                <em>«Вдихайте так, щоб я цього не чув»</em>
+              </p>
+            </div>
+            <div class="glass-card reveal">
+              <div
+                class="myth-badge"
+                style="
+                  font-size: 0.65rem;
+                  padding: 4px 10px;
+                  margin-bottom: 0.6rem;
+                ">
+                ❌ МІФ №5
+              </div>
+              <h3 class="font-bold text-sm text-accent-2 mb-2">
+                «Опора — це коли тиснеш»
+              </h3>
+              <p class="text-xs text-text-secondary">
+                Опора — це <strong>пружність</strong>, не груба сила. Надмірне
+                напруження руйнує звук.
+              </p>
+            </div>
+            <div class="glass-card reveal">
+              <div
+                class="myth-badge"
+                style="
+                  font-size: 0.65rem;
+                  padding: 4px 10px;
+                  margin-bottom: 0.6rem;
+                ">
+                ❌ МІФ №6
+              </div>
+              <h3 class="font-bold text-sm text-accent-2 mb-2">
+                «Тиск і швидкість — одне й те саме»
+              </h3>
+              <p class="text-xs text-text-secondary">
+                Ні! Тиск, потік і швидкість — <strong>різні</strong> параметри.
+                Для верхніх нот — більша швидкість, але менший об'єм.
+              </p>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-4 mt-4">
+            <div class="glass-card accent-border reveal" style="padding: 1rem">
+              <p class="text-xs text-text-secondary">
+                🔇 Тихий вдих → відкрите горло → чистий звук
+              </p>
+            </div>
+            <div
+              class="glass-card reveal"
+              style="border-color: rgba(74, 222, 128, 0.2); padding: 1rem">
+              <p class="text-xs text-text-secondary">
+                🌊 Сила — ворог; м'якість — друг (педагоги-практики)
+              </p>
+            </div>
+            <div class="glass-card reveal" style="padding: 1rem">
+              <p class="text-xs text-text-secondary">
+                ⬆️ Вищий регістр → вищий тиск, <em>менший</em> об'єм
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 6: Три типи дихання -->
+      <div class="slide slide-6" data-slide="6">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 420px;
+              height: 420px;
+              top: -80px;
+              right: -80px;
+              background: var(--color-accent-1);
+              opacity: 0.09;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 260px;
+              height: 260px;
+              bottom: -60px;
+              left: -40px;
+              background: var(--color-accent-3);
+              opacity: 0.07;
+            "></div>
+        </div>
+        <div class="content">
+          <div class="section-label reveal">Типи дихання</div>
+          <h2
+            class="font-display text-[clamp(1.8rem,3.5vw,2.6rem)] font-bold mb-5 reveal">
+            Грудне · Черевне · Змішане
+          </h2>
+          <div class="grid grid-cols-3 gap-5">
+            <div
+              class="glass-card reveal"
+              style="border-color: rgba(239, 68, 68, 0.3)">
+              <div class="text-3xl mb-3">😬</div>
+              <div
+                class="text-red-400 font-bold text-sm uppercase tracking-wider mb-2">
+                Грудне (ключичне)
+              </div>
+              <ul class="space-y-2 text-sm text-text-secondary">
+                <li>• Плечі піднімаються вгору</li>
+                <li>• Мінімальний об'єм</li>
+                <li>• Швидко стомлює</li>
+                <li>• Слабкий контроль</li>
+              </ul>
+              <div class="mt-3 text-xs text-red-400 font-semibold">
+                ❌ Для гри не підходить
+              </div>
+            </div>
+            <div
+              class="glass-card reveal"
+              style="border-color: rgba(251, 191, 36, 0.3)">
+              <div class="text-3xl mb-3">🤔</div>
+              <div
+                class="text-yellow-400 font-bold text-sm uppercase tracking-wider mb-2">
+                Черевне (діафрагм.)
+              </div>
+              <ul class="space-y-2 text-sm text-text-secondary">
+                <li>• Живіт виходить вперед</li>
+                <li>• Хороший об'єм</li>
+                <li>• Корисне як вправа</li>
+                <li>• У чистому вигляді — обмежене</li>
+              </ul>
+              <div class="mt-3 text-xs text-yellow-400 font-semibold">
+                ⚠️ Корисне, але неповне
+              </div>
+            </div>
+            <div
+              class="glass-card reveal"
+              style="border-color: rgba(74, 222, 128, 0.3)">
+              <div class="text-3xl mb-3">🏆</div>
+              <div
+                class="text-green-400 font-bold text-sm uppercase tracking-wider mb-2">
+                Змішане (гр.-черевне)
+              </div>
+              <ul class="space-y-2 text-sm text-text-secondary">
+                <li>• Все тіло «дихає»</li>
+                <li>• Максимальний об'єм</li>
+                <li>• Найкращий контроль</li>
+                <li>• Рівномірне навантаження</li>
+              </ul>
+              <div class="mt-3 text-xs text-green-400 font-semibold">
+                ✅ Найкраще для духовиків
+              </div>
+            </div>
+          </div>
+          <div class="glass-card accent-border mt-5 reveal">
+            <p class="text-sm text-text-secondary">
+              🫙 <strong class="text-text">Образ:</strong> Наповнюйте себе як
+              глечик — <span class="text-accent-1">знизу вгору</span>: спочатку
+              живіт, потім ребра, потім груди.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 7: Вдих -->
+      <div class="slide slide-7" data-slide="7">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 380px;
+              height: 380px;
+              top: -70px;
+              right: -70px;
+              background: var(--color-accent-3);
+              opacity: 0.09;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 260px;
+              height: 260px;
+              bottom: -50px;
+              left: -30px;
+              background: var(--color-accent-1);
+              opacity: 0.07;
+            "></div>
+        </div>
+        <div class="content">
+          <div class="section-label reveal">Фаза вдиху</div>
+          <h2
+            class="font-display text-[clamp(1.8rem,3.5vw,2.6rem)] font-bold mb-2 reveal">
+            Вдих — теж музика
+          </h2>
+          <p class="text-text-muted text-sm mb-5 reveal">
+            Вдих не просто «наповнює резервуар» — він <em>налаштовує тіло</em> і
+            відображає образ твору.
+          </p>
+          <div class="grid grid-cols-2 gap-5">
+            <div class="space-y-3">
+              <div
+                class="glass-card accent-border reveal"
+                style="padding: 1rem">
+                <div class="font-bold text-accent-1 text-sm mb-1">
+                  🔇 Правило 1
+                </div>
+                <p class="text-xs text-text-secondary">
+                  «Вдихайте так, щоб я
+                  <strong class="text-text">цього не чув</strong>» — відкрите
+                  горло
+                </p>
+              </div>
+              <div
+                class="glass-card accent-border reveal"
+                style="padding: 1rem">
+                <div class="font-bold text-accent-1 text-sm mb-1">
+                  👁️ Правило 2
+                </div>
+                <p class="text-xs text-text-secondary">
+                  «Вдихайте так, щоб я
+                  <strong class="text-text">цього не бачив</strong>» — плечі не
+                  піднімаються
+                </p>
+              </div>
+              <div
+                class="glass-card accent-border reveal"
+                style="padding: 1rem">
+                <div class="font-bold text-accent-1 text-sm mb-1">
+                  🎵 Правило 3
+                </div>
+                <p class="text-xs text-text-secondary">
+                  «Вдихайте <strong class="text-text">разом з музикою</strong>»
+                  — вдих не порушує фразу
+                </p>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div class="glass-card reveal">
+                <div class="font-bold text-accent-2 text-sm mb-2">
+                  Характер вдиху ↔ характер музики
+                </div>
+                <div class="space-y-1.5 text-xs text-text-secondary">
+                  <div class="flex justify-between">
+                    <span>Жвава, радісна</span
+                    ><span class="text-accent-1">→ Швидкий, легкий</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Сумна, трагічна</span
+                    ><span class="text-accent-1">→ Важкий, глибокий</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Героїчна</span
+                    ><span class="text-accent-1">→ Впевнений, значний</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Кантилена</span
+                    ><span class="text-accent-1">→ Неспішний, повний</span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="glass-card reveal"
+                style="border-color: rgba(239, 68, 68, 0.25)">
+                <div class="font-bold text-red-400 text-sm mb-2">
+                  ⚠️ Головна помилка
+                </div>
+                <p class="text-xs text-text-secondary">
+                  Затримка після вдиху перед звуком →
+                  <strong class="text-red-400">«музичне заїкання»</strong>.
+                  Кінець вдиху = початок видиху. Ніякої паузи!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 8: Видих і повітряний потік -->
+      <div class="slide slide-8" data-slide="8">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 400px;
+              height: 400px;
+              top: -70px;
+              right: -70px;
+              background: var(--color-accent-1);
+              opacity: 0.09;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 250px;
+              height: 250px;
+              bottom: -50px;
+              left: -30px;
+              background: var(--color-accent-3);
+              opacity: 0.07;
+            "></div>
+        </div>
+        <div class="content">
+          <div class="section-label reveal">Фаза видиху</div>
+          <h2
+            class="font-display text-[clamp(1.8rem,3.5vw,2.6rem)] font-bold mb-5 reveal">
+            Видих — творець звуку
+          </h2>
+          <div class="grid grid-cols-2 gap-5">
+            <div class="space-y-4">
+              <div class="glass-card reveal">
+                <div class="font-bold text-accent-2 text-sm mb-3">
+                  Три параметри повітряного потоку
+                </div>
+                <div class="space-y-2 text-sm text-text-secondary">
+                  <div class="flex items-center gap-3">
+                    <span class="text-accent-1 font-bold min-w-[70px] text-xs"
+                      >ТИСК</span
+                    >
+                    <span>Сила, яку прикладають м'язи</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="text-accent-1 font-bold min-w-[70px] text-xs"
+                      >ПОТІК</span
+                    >
+                    <span>Кількість повітря за секунду</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="text-accent-1 font-bold min-w-[70px] text-xs"
+                      >ШВИДКІСТЬ</span
+                    >
+                    <span>Швидкість руху через амбушур</span>
+                  </div>
+                </div>
+              </div>
+              <div class="glass-card reveal">
+                <div class="font-bold text-accent-2 text-sm mb-3">
+                  Регістр і потік
+                </div>
+                <div class="space-y-2">
+                  <div>
+                    <div
+                      class="flex justify-between text-xs text-text-muted mb-1">
+                      <span>⬆️ Верхній регістр</span
+                      ><span>більше тиску, менший об'єм</span>
+                    </div>
+                    <div class="bg-surface rounded h-3 overflow-hidden">
+                      <div
+                        class="bar-fill-anim"
+                        data-width="85"
+                        style="
+                          background: linear-gradient(90deg, #d4a843, #f0d080);
+                        "></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div
+                      class="flex justify-between text-xs text-text-muted mb-1">
+                      <span>⬇️ Нижній регістр</span
+                      ><span>ширший, повільніший потік</span>
+                    </div>
+                    <div class="bg-surface rounded h-3 overflow-hidden">
+                      <div
+                        class="bar-fill-anim"
+                        data-width="55"
+                        style="
+                          background: linear-gradient(90deg, #7ec8e3, #a0d8ef);
+                        "></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div
+                      class="flex justify-between text-xs text-text-muted mb-1">
+                      <span>💪 Forte</span><span>зростає тиск і об'єм</span>
+                    </div>
+                    <div class="bg-surface rounded h-3 overflow-hidden">
+                      <div
+                        class="bar-fill-anim"
+                        data-width="90"
+                        style="
+                          background: linear-gradient(90deg, #f87171, #fca5a5);
+                        "></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div
+                      class="flex justify-between text-xs text-text-muted mb-1">
+                      <span>🤫 Piano</span
+                      ><span>менший тиск, точніший контроль</span>
+                    </div>
+                    <div class="bg-surface rounded h-3 overflow-hidden">
+                      <div
+                        class="bar-fill-anim"
+                        data-width="35"
+                        style="
+                          background: linear-gradient(90deg, #a78bfa, #c4b5fd);
+                        "></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div class="glass-card reveal">
+                <div class="font-bold text-accent-2 text-sm mb-2">
+                  М'язи видиху (справжній двигун)
+                </div>
+                <ul class="space-y-1.5 text-sm text-text-secondary">
+                  <li class="flex items-start gap-2">
+                    <span class="text-accent-1">•</span> Прямі м'язи живота
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-accent-1">•</span> Косі м'язи живота
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-accent-1">•</span> Поперечні м'язи живота
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-accent-1">•</span> Внутрішні міжреберні
+                    м'язи
+                  </li>
+                </ul>
+              </div>
+              <div class="glass-card accent-border reveal">
+                <p class="text-sm text-text-secondary">
+                  ⚠️ Коли запас повітря падає до
+                  <strong class="text-accent-1">~30% ємності</strong> — м'язи
+                  видиху обов'язкові для підтримки потоку.
+                </p>
+              </div>
+              <div
+                class="glass-card reveal"
+                style="border-color: rgba(126, 200, 227, 0.25)">
+                <div class="font-bold text-accent-3 text-sm mb-1">
+                  🎻 Аналогія зі смичком
+                </div>
+                <p class="text-xs text-text-secondary">
+                  Подача повітря = рух смичка: рівномірний, безперервний, без
+                  поштовхів.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 9: Що таке ОПОРА -->
+      <div class="slide slide-9" data-slide="9">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 500px;
+              height: 500px;
+              top: -100px;
+              right: -100px;
+              background: var(--color-accent-1);
+              opacity: 0.13;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 300px;
+              height: 300px;
+              bottom: -70px;
+              left: -50px;
+              background: var(--color-accent-2);
+              opacity: 0.09;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 180px;
+              height: 180px;
+              top: 30%;
+              left: 10%;
+              background: var(--color-accent-3);
+              opacity: 0.07;
+            "></div>
+        </div>
+        <canvas
+          class="particle-canvas-ambient"
+          style="position: absolute; inset: 0; z-index: 1"></canvas>
+        <div class="content">
+          <div class="section-label reveal">Центральне поняття</div>
+          <h2
+            class="font-display text-[clamp(2rem,4vw,3rem)] font-black bg-linear-to-br from-accent-1 via-accent-2 to-accent-1 bg-clip-text text-transparent mb-2 reveal">
+            Що таке «ОПОРА»?
+          </h2>
+          <p class="text-text-muted text-sm mb-5 reveal">
+            Від іт. <em>appoggiare</em> — «підпирати». Термін прийшов із
+            вокального мистецтва.
+          </p>
+          <div class="grid grid-cols-3 gap-4">
+            <div
+              class="glass-card reveal"
+              style="border-color: rgba(212, 168, 67, 0.3)">
+              <div class="text-2xl mb-2">🎯</div>
+              <div class="text-accent-1 font-bold text-sm mb-2">Що це?</div>
+              <p class="text-xs text-text-secondary">
+                Скоординована,
+                <strong class="text-text">пружна</strong> взаємодія м'язів під
+                час видиху — а не просто напруження.
+              </p>
+            </div>
+            <div
+              class="glass-card reveal"
+              style="border-color: rgba(212, 168, 67, 0.3)">
+              <div class="text-2xl mb-2">⚙️</div>
+              <div class="text-accent-1 font-bold text-sm mb-2">Механізм</div>
+              <p class="text-xs text-text-secondary">
+                Прес «виштовхує» → діафрагма контрольовано «гальмує» →
+                <strong class="text-text">пружна взаємодія</strong>
+              </p>
+            </div>
+            <div
+              class="glass-card reveal"
+              style="border-color: rgba(212, 168, 67, 0.3)">
+              <div class="text-2xl mb-2">❌</div>
+              <div class="text-accent-1 font-bold text-sm mb-2">Що це НЕ є</div>
+              <p class="text-xs text-text-secondary">
+                Не поза, не конкретний м'яз, не груба сила. Це —
+                <strong class="text-text">поведінка тіла</strong>.
+              </p>
+            </div>
+          </div>
+          <div
+            class="glass-card mt-5 reveal"
+            style="
+              background: rgba(212, 168, 67, 0.08);
+              border-color: rgba(212, 168, 67, 0.4);
+            ">
+            <p class="text-center text-sm text-text-secondary">
+              🎻
+              <strong class="text-accent-2">Аналогія Венгловського:</strong>
+              «Подача дихання — як рух смичка у струнника: тиск є, але він
+              рівномірний і безперервний»
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 10: Що дає опора -->
+      <div class="slide slide-10" data-slide="10">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 380px;
+              height: 380px;
+              top: -60px;
+              right: -60px;
+              background: var(--color-accent-1);
+              opacity: 0.09;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 250px;
+              height: 250px;
+              bottom: -50px;
+              left: -30px;
+              background: var(--color-accent-3);
+              opacity: 0.07;
+            "></div>
+        </div>
+        <div class="content">
+          <div class="section-label reveal">Практична цінність</div>
+          <h2
+            class="font-display text-[clamp(1.8rem,3.5vw,2.6rem)] font-bold mb-5 reveal">
+            Що дає опора виконавцю?
+          </h2>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-3">
+              <div
+                class="glass-card reveal"
+                style="
+                  padding: 1rem;
+                  display: flex;
+                  align-items: flex-start;
+                  gap: 12px;
+                ">
+                <span class="text-2xl">🎵</span>
+                <div>
+                  <div class="font-semibold text-sm text-accent-2 mb-1">
+                    Тривалий стабільний звук
+                  </div>
+                  <p class="text-xs text-text-secondary">
+                    Довге фрагування без «провалів» наприкінці фрази
+                  </p>
+                </div>
+              </div>
+              <div
+                class="glass-card reveal"
+                style="
+                  padding: 1rem;
+                  display: flex;
+                  align-items: flex-start;
+                  gap: 12px;
+                ">
+                <span class="text-2xl">🎯</span>
+                <div>
+                  <div class="font-semibold text-sm text-accent-2 mb-1">
+                    Точна інтонація
+                  </div>
+                  <p class="text-xs text-text-secondary">
+                    Рівний потік повітря = стабільна висота звуку
+                  </p>
+                </div>
+              </div>
+              <div
+                class="glass-card reveal"
+                style="
+                  padding: 1rem;
+                  display: flex;
+                  align-items: flex-start;
+                  gap: 12px;
+                ">
+                <span class="text-2xl">💪</span>
+                <div>
+                  <div class="font-semibold text-sm text-accent-2 mb-1">
+                    Менша втома амбушуру
+                  </div>
+                  <p class="text-xs text-text-secondary">
+                    Менше тиску мундштука → губи слугують довше
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div
+                class="glass-card reveal"
+                style="
+                  padding: 1rem;
+                  display: flex;
+                  align-items: flex-start;
+                  gap: 12px;
+                ">
+                <span class="text-2xl">🚀</span>
+                <div>
+                  <div class="font-semibold text-sm text-accent-2 mb-1">
+                    «Летючий» звук
+                  </div>
+                  <p class="text-xs text-text-secondary">
+                    Звук стає вільнішим, більш «піднятим», проникним
+                  </p>
+                </div>
+              </div>
+              <div
+                class="glass-card reveal"
+                style="
+                  padding: 1rem;
+                  display: flex;
+                  align-items: flex-start;
+                  gap: 12px;
+                ">
+                <span class="text-2xl">⚡</span>
+                <div>
+                  <div class="font-semibold text-sm text-accent-2 mb-1">
+                    Чіткість штрихів
+                  </div>
+                  <p class="text-xs text-text-secondary">
+                    Надійна атака і рівність у технічних пасажах
+                  </p>
+                </div>
+              </div>
+              <div
+                class="glass-card reveal"
+                style="
+                  padding: 1rem;
+                  display: flex;
+                  align-items: flex-start;
+                  gap: 12px;
+                ">
+                <span class="text-2xl">🌬️</span>
+                <div>
+                  <div class="font-semibold text-sm text-accent-2 mb-1">
+                    Витривалість
+                  </div>
+                  <p class="text-xs text-text-secondary">
+                    Збереження якості звуку при тривалій грі
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 11: Резонатори -->
+      <div class="slide slide-11" data-slide="11">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 360px;
+              height: 360px;
+              top: -60px;
+              right: -60px;
+              background: var(--color-accent-3);
+              opacity: 0.09;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 240px;
+              height: 240px;
+              bottom: -50px;
+              left: -30px;
+              background: var(--color-accent-1);
+              opacity: 0.07;
+            "></div>
+        </div>
+        <div class="content">
+          <div class="section-label reveal">Акустика виконавця</div>
+          <h2
+            class="font-display text-[clamp(1.8rem,3.5vw,2.6rem)] font-bold mb-2 reveal">
+            Резонатори та позиція язика
+          </h2>
+          <p class="text-text-muted text-sm mb-5 reveal">
+            Тіло виконавця — частина інструменту. Форма ротової порожнини
+            впливає на звук.
+          </p>
+          <div class="grid grid-cols-2 gap-5">
+            <div class="glass-card reveal">
+              <div class="font-bold text-accent-2 text-sm mb-3">
+                Система трьох компонентів
+              </div>
+              <div class="space-y-3">
+                <div class="flex items-center gap-3 text-sm">
+                  <span
+                    class="bg-accent-1 text-bg-deep font-bold text-xs rounded-full w-7 h-7 flex items-center justify-center flex-shrink-0"
+                    >1</span
+                  >
+                  <span class="text-text-secondary"
+                    ><strong class="text-text">Інструмент</strong> — труба,
+                    тромбон, флейта</span
+                  >
+                </div>
+                <div class="flex items-center gap-3 text-sm">
+                  <span
+                    class="bg-accent-1 text-bg-deep font-bold text-xs rounded-full w-7 h-7 flex items-center justify-center flex-shrink-0"
+                    >2</span
+                  >
+                  <span class="text-text-secondary"
+                    ><strong class="text-text">Амбушур</strong> — губи та
+                    мундштук</span
+                  >
+                </div>
+                <div class="flex items-center gap-3 text-sm">
+                  <span
+                    class="bg-accent-1 text-bg-deep font-bold text-xs rounded-full w-7 h-7 flex items-center justify-center flex-shrink-0"
+                    >3</span
+                  >
+                  <span class="text-text-secondary"
+                    ><strong class="text-text">Дихальні шляхи</strong> — рот,
+                    горло, трахея</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="glass-card reveal">
+              <div class="font-bold text-accent-2 text-sm mb-3">
+                Позиція язика за регістром
+              </div>
+              <div class="space-y-3 text-sm">
+                <div class="flex items-center justify-between">
+                  <span class="text-text-secondary">⬇️ Нижній регістр</span>
+                  <span class="text-accent-1 font-bold">"О" або "У"</span>
+                </div>
+                <div class="h-px bg-glass-border"></div>
+                <div class="flex items-center justify-between">
+                  <span class="text-text-secondary">⬆️ Верхній регістр</span>
+                  <span class="text-accent-1 font-bold">"І" або "Е"</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mt-4">
+            <div class="glass-card accent-border reveal" style="padding: 1rem">
+              <p class="text-xs text-text-secondary">
+                🥱 <strong class="text-accent-2">«Прихований позіх»</strong> —
+                відкриває горло, покращує резонанс
+              </p>
+            </div>
+            <div
+              class="glass-card reveal"
+              style="padding: 1rem; border-color: rgba(126, 200, 227, 0.25)">
+              <p class="text-xs text-text-secondary">
+                🍎 <strong class="text-accent-3">«Яблуко в роті»</strong> —
+                образ для відкритої ротоглотки
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 12: Дихання і сцена -->
+      <div class="slide slide-12" data-slide="12">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 380px;
+              height: 380px;
+              top: -60px;
+              right: -60px;
+              background: #7c3aed;
+              opacity: 0.08;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 250px;
+              height: 250px;
+              bottom: -50px;
+              left: -30px;
+              background: var(--color-accent-1);
+              opacity: 0.07;
+            "></div>
+        </div>
+        <div class="content">
+          <div class="section-label reveal">Психологія виконавства</div>
+          <h2
+            class="font-display text-[clamp(1.8rem,3.5vw,2.6rem)] font-bold mb-5 reveal">
+            Дихання і сценічне хвилювання
+          </h2>
+          <div class="grid grid-cols-2 gap-5">
+            <div class="space-y-4">
+              <div
+                class="glass-card reveal"
+                style="border-color: rgba(239, 68, 68, 0.25)">
+                <div class="font-bold text-red-400 text-sm mb-2">
+                  😰 Що відбувається при хвилюванні?
+                </div>
+                <ul class="space-y-1.5 text-xs text-text-secondary">
+                  <li>• Адреналін → дихання прискорюється</li>
+                  <li>• Дихання стає поверхневим і грудним</li>
+                  <li>• Менше повітря → погіршення звуку</li>
+                  <li>• Тремтіння, порушення амбушуру</li>
+                </ul>
+              </div>
+              <div
+                class="glass-card reveal"
+                style="border-color: rgba(74, 222, 128, 0.25)">
+                <div class="font-bold text-green-400 text-sm mb-2">
+                  ✅ Як допомогти собі?
+                </div>
+                <ul class="space-y-1.5 text-xs text-text-secondary">
+                  <li>• 3 глибокі носові вдихи перед виходом</li>
+                  <li>• Повний видих — скидання напруги</li>
+                  <li>• Фокус на <em>розширенні грудної клітки</em></li>
+                  <li>• Повільне дихання → відчуття спокою</li>
+                </ul>
+              </div>
+            </div>
+            <div class="glass-card reveal">
+              <div class="font-bold text-accent-2 text-sm mb-3">
+                🧠 Ментальні образи
+              </div>
+              <div class="space-y-2 text-xs text-text-secondary">
+                <div class="flex items-start gap-2">
+                  <span class="text-accent-1 font-bold min-w-[24px]">1.</span>
+                  <span
+                    ><strong class="text-text">«Дихай у спину»</strong> —
+                    розширення нижніх відділів легень</span
+                  >
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="text-accent-1 font-bold min-w-[24px]">2.</span>
+                  <span
+                    ><strong class="text-text">«Широка соломинка»</strong> —
+                    розслаблений, повний вдих</span
+                  >
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="text-accent-1 font-bold min-w-[24px]">3.</span>
+                  <span
+                    ><strong class="text-text">«Теплий потік»</strong> — м'який,
+                    безперервний видих</span
+                  >
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="text-accent-1 font-bold min-w-[24px]">4.</span>
+                  <span
+                    ><strong class="text-text">«Смичок на струні»</strong> —
+                    рівна опора на всьому видиху</span
+                  >
+                </div>
+                <div class="flex items-start gap-2">
+                  <span class="text-accent-1 font-bold min-w-[24px]">5.</span>
+                  <span
+                    ><strong class="text-text">«Шипіння ссс»</strong> —
+                    залучення черевного пресу</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 13: Вправи -->
+      <div class="slide slide-13" data-slide="13">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 400px;
+              height: 400px;
+              top: -70px;
+              right: -70px;
+              background: var(--color-accent-1);
+              opacity: 0.09;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 260px;
+              height: 260px;
+              bottom: -50px;
+              left: -40px;
+              background: var(--color-accent-3);
+              opacity: 0.07;
+            "></div>
+        </div>
+        <div class="content">
+          <div class="section-label reveal">Практика</div>
+          <h2
+            class="font-display text-[clamp(1.8rem,3.5vw,2.6rem)] font-bold mb-5 reveal">
+            Вправи до і під час гри
+          </h2>
+          <div class="grid grid-cols-2 gap-5">
+            <div class="space-y-3">
+              <div
+                class="glass-card accent-border reveal"
+                style="padding: 1rem">
+                <div class="font-bold text-accent-1 text-sm mb-1">
+                  🫁 Вправа 1: «Шипіння»
+                </div>
+                <p class="text-xs text-text-secondary">
+                  Видихайте зі звуком <strong>«ссс»</strong> упродовж 20–30
+                  секунд. Відчуйте, як живіт поступово «підтягується» до хребта.
+                </p>
+              </div>
+              <div
+                class="glass-card accent-border reveal"
+                style="padding: 1rem">
+                <div class="font-bold text-accent-1 text-sm mb-1">
+                  ⏱️ Вправа 2: Метроном
+                </div>
+                <p class="text-xs text-text-secondary">
+                  Вдих — 2 удари. Видих — 8 ударів. Поступово збільшуйте: 2:10 →
+                  2:12 → 2:16
+                </p>
+              </div>
+              <div
+                class="glass-card accent-border reveal"
+                style="padding: 1rem">
+                <div class="font-bold text-accent-1 text-sm mb-1">
+                  🕯️ Вправа 3: Свічка
+                </div>
+                <p class="text-xs text-text-secondary">
+                  Видихайте на полум'я свічки — воно повинно
+                  <strong>рівно гнутися</strong>, без поштовхів. Жодних
+                  мерехтінь!
+                </p>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div
+                class="glass-card reveal"
+                style="padding: 1rem; border-color: rgba(126, 200, 227, 0.25)">
+                <div class="font-bold text-accent-3 text-sm mb-1">
+                  🤲 Вправа 4: Руки на ребрах
+                </div>
+                <p class="text-xs text-text-secondary">
+                  Стоячи, покладіть руки на нижні ребра. При вдиху відчуйте, як
+                  ребра розширюються <strong>в усі боки</strong> — вперед,
+                  назад, в сторони.
+                </p>
+              </div>
+              <div
+                class="glass-card reveal"
+                style="padding: 1rem; border-color: rgba(126, 200, 227, 0.25)">
+                <div class="font-bold text-accent-3 text-sm mb-1">
+                  🥱 Вправа 5: Позіх перед грою
+                </div>
+                <p class="text-xs text-text-secondary">
+                  Перед початком гри зробіть «прихований позіх» — відчуйте, як
+                  горло відкривається і розширюється.
+                </p>
+              </div>
+              <div
+                class="glass-card reveal"
+                style="padding: 1rem; border-color: rgba(212, 168, 67, 0.25)">
+                <div class="font-bold text-accent-1 text-sm mb-1">
+                  💡 Порада
+                </div>
+                <p class="text-xs text-text-secondary">
+                  Ці вправи робіть <strong>до гри на інструменті</strong> — вони
+                  налаштовують тіло і активують правильні м'язи.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 14: Типові помилки -->
+      <div class="slide slide-14" data-slide="14">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 360px;
+              height: 360px;
+              top: -60px;
+              right: -60px;
+              background: #dc2626;
+              opacity: 0.07;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 240px;
+              height: 240px;
+              bottom: -50px;
+              left: -30px;
+              background: var(--color-accent-1);
+              opacity: 0.06;
+            "></div>
+        </div>
+        <div class="content">
+          <div class="section-label reveal">Діагностика</div>
+          <h2
+            class="font-display text-[clamp(1.8rem,3.5vw,2.6rem)] font-bold mb-5 reveal">
+            Типові дефекти і як їх виправити
+          </h2>
+          <div class="space-y-3">
+            <div class="glass-card reveal" style="padding: 1rem">
+              <div class="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span class="text-red-400 font-bold">⚠️ Дефект</span
+                  ><br /><span class="text-text-secondary text-xs"
+                    >Гучний вдих</span
+                  >
+                </div>
+                <div>
+                  <span class="text-yellow-400 font-bold">🔍 Причина</span
+                  ><br /><span class="text-text-secondary text-xs"
+                    >Затиск горла, напружене м'яке піднебіння</span
+                  >
+                </div>
+                <div>
+                  <span class="text-green-400 font-bold">✅ Виправлення</span
+                  ><br /><span class="text-text-secondary text-xs"
+                    >Відкрити горло, «прихований позіх»</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="glass-card reveal" style="padding: 1rem">
+              <div class="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span class="text-red-400 font-bold">⚠️ Дефект</span
+                  ><br /><span class="text-text-secondary text-xs"
+                    >Слабкий звук наприкінці фрази</span
+                  >
+                </div>
+                <div>
+                  <span class="text-yellow-400 font-bold">🔍 Причина</span
+                  ><br /><span class="text-text-secondary text-xs"
+                    >Видих «до дна» легень</span
+                  >
+                </div>
+                <div>
+                  <span class="text-green-400 font-bold">✅ Виправлення</span
+                  ><br /><span class="text-text-secondary text-xs"
+                    >Не видихати повністю, залишати резерв</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="glass-card reveal" style="padding: 1rem">
+              <div class="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span class="text-red-400 font-bold">⚠️ Дефект</span
+                  ><br /><span class="text-text-secondary text-xs"
+                    >Нестабільна інтонація</span
+                  >
+                </div>
+                <div>
+                  <span class="text-yellow-400 font-bold">🔍 Причина</span
+                  ><br /><span class="text-text-secondary text-xs"
+                    >Відсутність опори</span
+                  >
+                </div>
+                <div>
+                  <span class="text-green-400 font-bold">✅ Виправлення</span
+                  ><br /><span class="text-text-secondary text-xs"
+                    >Вправи на тривалий рівний видих (свічка, ссс)</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="glass-card reveal" style="padding: 1rem">
+              <div class="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span class="text-red-400 font-bold">⚠️ Дефект</span
+                  ><br /><span class="text-text-secondary text-xs"
+                    >Швидка втома губ</span
+                  >
+                </div>
+                <div>
+                  <span class="text-yellow-400 font-bold">🔍 Причина</span
+                  ><br /><span class="text-text-secondary text-xs"
+                    >Надмірний тиск мундштука</span
+                  >
+                </div>
+                <div>
+                  <span class="text-green-400 font-bold">✅ Виправлення</span
+                  ><br /><span class="text-text-secondary text-xs"
+                    >Посилити потік повітря, зменшити тиск</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="glass-card reveal" style="padding: 1rem">
+              <div class="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span class="text-red-400 font-bold">⚠️ Дефект</span
+                  ><br /><span class="text-text-secondary text-xs"
+                    >«Поштовхи» у звуці</span
+                  >
+                </div>
+                <div>
+                  <span class="text-yellow-400 font-bold">🔍 Причина</span
+                  ><br /><span class="text-text-secondary text-xs"
+                    >Нерівномірний видих</span
+                  >
+                </div>
+                <div>
+                  <span class="text-green-400 font-bold">✅ Виправлення</span
+                  ><br /><span class="text-text-secondary text-xs"
+                    >Вправа зі свічкою, тривалі рівні ноти</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 15: Головні принципи -->
+      <div class="slide slide-15" data-slide="15">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 450px;
+              height: 450px;
+              top: -90px;
+              right: -90px;
+              background: var(--color-accent-1);
+              opacity: 0.11;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 280px;
+              height: 280px;
+              bottom: -60px;
+              left: -40px;
+              background: var(--color-accent-3);
+              opacity: 0.08;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 180px;
+              height: 180px;
+              top: 40%;
+              left: 15%;
+              background: var(--color-accent-2);
+              opacity: 0.06;
+            "></div>
+        </div>
+        <canvas
+          class="particle-canvas-ambient"
+          style="position: absolute; inset: 0; z-index: 1"></canvas>
+        <div class="content">
+          <div class="section-label reveal">Підсумок</div>
+          <h2
+            class="font-display text-[clamp(1.8rem,3.5vw,2.6rem)] font-bold mb-5 reveal">
+            8 головних принципів
+          </h2>
+          <div class="grid grid-cols-2 gap-3">
+            <div
+              class="glass-card accent-border reveal"
+              style="
+                padding: 0.875rem;
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+              ">
+              <span class="text-accent-1 font-black text-lg min-w-[28px]"
+                >1</span
+              >
+              <p class="text-sm text-text-secondary">
+                <strong class="text-text">Вдих — знизу вгору:</strong> живіт →
+                ребра → груди
+              </p>
+            </div>
+            <div
+              class="glass-card accent-border reveal"
+              style="
+                padding: 0.875rem;
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+              ">
+              <span class="text-accent-1 font-black text-lg min-w-[28px]"
+                >2</span
+              >
+              <p class="text-sm text-text-secondary">
+                <strong class="text-text">Опора на видиху</strong> — це м'язи
+                пресу, не діафрагма
+              </p>
+            </div>
+            <div
+              class="glass-card accent-border reveal"
+              style="
+                padding: 0.875rem;
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+              ">
+              <span class="text-accent-1 font-black text-lg min-w-[28px]"
+                >3</span
+              >
+              <p class="text-sm text-text-secondary">
+                <strong class="text-text">«Опора» — пружність,</strong> не сила.
+                Координація, не напруження.
+              </p>
+            </div>
+            <div
+              class="glass-card accent-border reveal"
+              style="
+                padding: 0.875rem;
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+              ">
+              <span class="text-accent-1 font-black text-lg min-w-[28px]"
+                >4</span
+              >
+              <p class="text-sm text-text-secondary">
+                <strong class="text-text">Видих — активний, але м'який:</strong>
+                рівний потік, без поштовхів
+              </p>
+            </div>
+            <div
+              class="glass-card accent-border reveal"
+              style="
+                padding: 0.875rem;
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+              ">
+              <span class="text-accent-1 font-black text-lg min-w-[28px]"
+                >5</span
+              >
+              <p class="text-sm text-text-secondary">
+                <strong class="text-text">Залишай резерв:</strong> не видихай до
+                кінця — вдих буде швидшим
+              </p>
+            </div>
+            <div
+              class="glass-card accent-border reveal"
+              style="
+                padding: 0.875rem;
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+              ">
+              <span class="text-accent-1 font-black text-lg min-w-[28px]"
+                >6</span
+              >
+              <p class="text-sm text-text-secondary">
+                <strong class="text-text">Вдих — теж музика:</strong> він
+                відображає характер твору
+              </p>
+            </div>
+            <div
+              class="glass-card accent-border reveal"
+              style="
+                padding: 0.875rem;
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+              ">
+              <span class="text-accent-1 font-black text-lg min-w-[28px]"
+                >7</span
+              >
+              <p class="text-sm text-text-secondary">
+                <strong class="text-text">Тіло — частина інструменту:</strong>
+                відкрите горло, правильний язик
+              </p>
+            </div>
+            <div
+              class="glass-card accent-border reveal"
+              style="
+                padding: 0.875rem;
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+              ">
+              <span class="text-accent-1 font-black text-lg min-w-[28px]"
+                >8</span
+              >
+              <p class="text-sm text-text-secondary">
+                <strong class="text-text"
+                  >Дихання і психіка — одне ціле:</strong
+                >
+                стабільне дихання = впевненість на сцені
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 16: Closing -->
+      <div class="slide slide-16" data-slide="16">
+        <div class="gradient-mesh">
+          <div
+            class="blob"
+            style="
+              width: 500px;
+              height: 500px;
+              top: -100px;
+              right: -100px;
+              background: var(--color-accent-1);
+              opacity: 0.14;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 350px;
+              height: 350px;
+              bottom: -80px;
+              left: -60px;
+              background: var(--color-accent-3);
+              opacity: 0.1;
+            "></div>
+          <div
+            class="blob"
+            style="
+              width: 200px;
+              height: 200px;
+              top: 30%;
+              left: 10%;
+              background: var(--color-accent-2);
+              opacity: 0.08;
+            "></div>
+        </div>
+        <canvas
+          class="particle-canvas"
+          style="position: absolute; inset: 0; z-index: 1"></canvas>
+        <div class="content text-center">
+          <div
+            class="text-[80px] mb-4 animate-[float_3s_ease-in-out_infinite] reveal">
+            🎶
+          </div>
+          <h2
+            class="font-display text-[clamp(2rem,4.5vw,3.5rem)] font-black bg-linear-to-br from-accent-1 via-accent-2 to-accent-1 bg-clip-text text-transparent mb-4 reveal">
+            Дихай — і звучи!
+          </h2>
+          <p class="text-text-secondary text-lg mb-6 reveal font-light italic">
+            «Подача дихання — як рух смичка: рівномірна, безперервна, виразна»
+          </p>
+          <p class="text-text-muted text-xs tracking-[5px] uppercase reveal">
+            Виконавське дихання · Поняття «Опора» · Духові інструменти
+          </p>
+        </div>
+      </div>
+    </div>
+    <!-- end .deck -->
+
+    <div class="nav-controls">
+      <button class="nav-btn" onclick="changeSlide(-1)">&#8249;</button>
+      <div class="slide-dots" id="dots"></div>
+      <button class="nav-btn" onclick="changeSlide(1)">&#8250;</button>
+      <span class="slide-counter" id="counter">1 / 16</span>
+    </div>
+
+    <script>
+      let current = 1;
+      const total = document.querySelectorAll(".slide").length;
+      const dotsContainer = document.getElementById("dots");
+      const counter = document.getElementById("counter");
+      for (let i = 1; i <= total; i++) {
+        const dot = document.createElement("div");
+        dot.className = "dot" + (i === 1 ? " active" : "");
+        dot.onclick = () => goToSlide(i);
+        dotsContainer.appendChild(dot);
+      }
+
+      function goToSlide(n) {
+        const prev = document.querySelector(".slide.active");
+        const next = document.querySelector(`.slide[data-slide="${n}"]`);
+        if (prev) prev.classList.remove("active");
+        if (next) {
+          next.classList.add("active");
+          animateSlide(next);
+        }
+        current = n;
+        updateNav();
+      }
+      function changeSlide(dir) {
+        let next = current + dir;
+        if (next < 1) next = total;
+        if (next > total) next = 1;
+        goToSlide(next);
+      }
+      function updateNav() {
+        document.querySelectorAll(".dot").forEach((d, i) => {
+          d.classList.toggle("active", i + 1 === current);
+        });
+        counter.textContent = current + " / " + total;
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === " ") {
+          e.preventDefault();
+          changeSlide(1);
+        }
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          changeSlide(-1);
+        }
+      });
+      let touchStartX = 0;
+      document.addEventListener("touchstart", (e) => {
+        touchStartX = e.touches[0].clientX;
+      });
+      document.addEventListener("touchend", (e) => {
+        const diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) changeSlide(diff > 0 ? 1 : -1);
+      });
+
+      function animateSlide(slide) {
+        slide.querySelectorAll(".reveal").forEach((el, i) => {
+          el.style.transition = "none";
+          el.style.opacity = "0";
+          el.style.transform = "translateY(20px)";
+          el.offsetHeight;
+          const delay = i * 0.08;
+          el.style.transition = `opacity 0.35s ease ${delay}s, transform 0.35s ease ${delay}s`;
+          el.style.opacity = "1";
+          el.style.transform = "translateY(0px)";
+        });
+        // Animate bar fills
+        slide
+          .querySelectorAll(".bar-fill-anim:not(.fill-done)")
+          .forEach((bar, i) => {
+            bar.classList.add("fill-done");
+            setTimeout(
+              () => {
+                bar.style.width = bar.dataset.width + "%";
+              },
+              400 + i * 120,
+            );
+          });
+      }
+
+      document.addEventListener("mousemove", (e) => {
+        const spotlight = document.querySelector(".mouse-spotlight");
+        if (spotlight) {
+          spotlight.style.background = `radial-gradient(600px circle at ${e.clientX}px ${e.clientY}px, rgba(212,168,67,0.06), transparent 40%)`;
+        }
+      });
+
+      window.initParticles = function (canvas, options) {
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        const interactive = options.interactive !== false;
+        const count = options.count || (interactive ? 55 : 18);
+        let mx = -1000,
+          my = -1000;
+        const particles = Array.from({ length: count }, () => ({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
+          size: Math.random() * 2.5 + 0.8,
+          alpha: Math.random() * 0.35 + 0.1,
+        }));
+        if (interactive) {
+          canvas.addEventListener("mousemove", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mx = e.clientX - rect.left;
+            my = e.clientY - rect.top;
+          });
+          canvas.addEventListener("mouseleave", () => {
+            mx = -1000;
+            my = -1000;
+          });
+        }
+        (function animate() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          particles.forEach((p) => {
+            if (interactive) {
+              const dx = p.x - mx,
+                dy = p.y - my,
+                dist = Math.sqrt(dx * dx + dy * dy);
+              if (dist < 120) {
+                const force = ((120 - dist) / 120) * 2;
+                p.vx += (dx / dist) * force * 0.1;
+                p.vy += (dy / dist) * force * 0.1;
+              }
+            }
+            p.vx *= 0.98;
+            p.vy *= 0.98;
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0) p.x = canvas.width;
+            if (p.x > canvas.width) p.x = 0;
+            if (p.y < 0) p.y = canvas.height;
+            if (p.y > canvas.height) p.y = 0;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(212,168,67,${p.alpha})`;
+            ctx.fill();
+          });
+          requestAnimationFrame(animate);
+        })();
+      };
+      document
+        .querySelectorAll(".particle-canvas")
+        .forEach((c) =>
+          window.initParticles(c, { interactive: true, count: 55 }),
+        );
+      document
+        .querySelectorAll(".particle-canvas-ambient")
+        .forEach((c) =>
+          window.initParticles(c, { interactive: false, count: 18 }),
+        );
+
+      try {
+        animateSlide(document.querySelector(".slide.active"));
+      } catch (e) {
+        console.warn(e);
+      }
+    </script>
+  </body>
+</html>
