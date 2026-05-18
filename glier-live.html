@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="slides-format" content="viewport">
+    <title>GLIER LIVE — Концертно-Гастрольний Департамент</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style type="text/tailwindcss">
+        @theme {
+            --color-bg: #0e0c18;
+            --color-bg-deep: #080610;
+            --color-surface: #16122a;
+            --color-text: #f0ecff;
+            --color-text-secondary: #c4b8f0;
+            --color-text-muted: #8b7fc0;
+            --color-accent-1: #c084fc;
+            --color-accent-2: #f0abfc;
+            --color-accent-3: #fb923c;
+            --color-glass-bg: rgba(192,132,252,0.06);
+            --color-glass-border: rgba(192,132,252,0.15);
+            --color-vignette: rgba(0,0,0,0.55);
+            --font-display: 'Cormorant Garamond', Georgia, serif;
+            --font-body: 'DM Sans', system-ui, sans-serif;
+        }
+    </style>
+
+    <style>
+        :root {
+            --color-bg: #0e0c18;
+            --color-text: #f0ecff;
+            --glow-color-rgb: 192,132,252;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { background: var(--color-bg); margin: 0; }
+        body { font-family: 'DM Sans', system-ui, sans-serif; color: var(--color-text); overflow: hidden; height: 100vh; width: 100vw; }
+        .deck { width: 100vw; height: 100vh; position: relative; }
+        .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--color-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transform: scale(0.95); transition: opacity 0.7s ease, transform 0.7s ease; pointer-events: none; overflow: hidden; }
+        .slide.active { opacity: 1; transform: scale(1); pointer-events: all; }
+        .slide > .content { position: relative; z-index: 2; width: 100%; max-width: 1100px; padding: clamp(1.5rem, 4vw, 3.5rem); }
+        .nav-controls { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 16px; z-index: 100; background: rgba(192,132,252,0.07); backdrop-filter: blur(14px); padding: 10px 24px; border-radius: 40px; border: 1px solid rgba(192,132,252,0.18); }
+        .nav-btn { width: 38px; height: 38px; border: none; background: rgba(192,132,252,0.1); color: #c084fc; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.3s; }
+        .nav-btn:hover { background: rgba(192,132,252,0.2); }
+        .slide-dots { display: flex; gap: 8px; }
+        .slide-dots .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(192,132,252,0.25); cursor: pointer; transition: background 0.3s, transform 0.3s; }
+        .slide-dots .dot.active { background: #c084fc; transform: scale(1.35); }
+        .slide-counter { font-size: 0.75rem; color: #8b7fc0; min-width: 38px; text-align: center; font-family: 'DM Sans', sans-serif; }
+        .reveal { opacity: 0; transform: translateY(22px); }
+
+        /* Glow */
+        .text-glow { text-shadow: 0 0 20px rgba(192,132,252,0.55), 0 0 45px rgba(192,132,252,0.22); }
+        .stat-glow { text-shadow: 0 0 30px rgba(192,132,252,0.65), 0 0 65px rgba(192,132,252,0.28); }
+        @keyframes glow-pulse { 0%,100% { text-shadow: 0 0 20px rgba(192,132,252,0.55),0 0 45px rgba(192,132,252,0.22); } 50% { text-shadow: 0 0 35px rgba(192,132,252,0.85),0 0 70px rgba(192,132,252,0.38); } }
+        .glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
+
+        /* Gradient mesh */
+        @keyframes float-slow { 0% { transform: translate(0,0) scale(1); } 25% { transform: translate(60px,-50px) scale(1.12); } 50% { transform: translate(-40px,40px) scale(0.9); } 75% { transform: translate(50px,20px) scale(1.08); } 100% { transform: translate(0,0) scale(1); } }
+        @keyframes float-drift { 0% { transform: translate(0,0) scale(1) rotate(0deg); } 33% { transform: translate(-50px,-60px) scale(1.15) rotate(3deg); } 66% { transform: translate(40px,30px) scale(0.88) rotate(-2deg); } 100% { transform: translate(0,0) scale(1) rotate(0deg); } }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+        .gradient-mesh { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .blob { position: absolute; border-radius: 50%; filter: blur(80px); animation: float-slow 11s ease-in-out infinite; }
+        .blob:nth-child(2) { animation: float-drift 15s ease-in-out infinite; }
+        .blob:nth-child(3) { animation: float-slow 20s ease-in-out infinite reverse; }
+
+        /* Noise + vignette */
+        .slide::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); background-repeat: repeat; background-size: 256px 256px; opacity: 0.03; mix-blend-mode: overlay; }
+        .slide::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(ellipse at center, transparent 50%, var(--color-vignette) 100%); }
+
+        /* Bar fills */
+        .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #c084fc, #f0abfc); width: 0%; transition: width 0.8s ease; }
+        .bar-track { background: rgba(192,132,252,0.1); border-radius: 6px; height: 10px; overflow: hidden; }
+
+        /* Slide-specific */
+        .accent-tag { display: inline-block; background: rgba(192,132,252,0.15); border: 1px solid rgba(192,132,252,0.25); border-radius: 999px; padding: 0.2rem 0.85rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #c084fc; }
+        .divider-line { width: 60px; height: 3px; background: linear-gradient(90deg, #c084fc, #f0abfc); border-radius: 2px; margin: 1rem 0; }
+        .glass-card { background: rgba(192,132,252,0.055); backdrop-filter: blur(12px); border: 1px solid rgba(192,132,252,0.15); border-radius: 16px; }
+        .accent-border-card { border-left: 3px solid #c084fc; background: rgba(192,132,252,0.04); border-radius: 0 12px 12px 0; padding: 1rem 1.25rem; }
+        .number-badge { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #c084fc, #f0abfc); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: #0e0c18; flex-shrink: 0; }
+        .world-ref-row { display: flex; align-items: flex-start; gap: 1rem; padding: 0.7rem 1rem; background: rgba(192,132,252,0.05); border-radius: 10px; border-left: 3px solid rgba(192,132,252,0.5); }
+        .risk-tag-low { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: #86efac; border-radius: 6px; padding: 0.2rem 0.6rem; font-size: 0.7rem; font-weight: 600; }
+        .risk-tag-med { background: rgba(251,146,60,0.15); border: 1px solid rgba(251,146,60,0.3); color: #fdba74; border-radius: 6px; padding: 0.2rem 0.6rem; font-size: 0.7rem; font-weight: 600; }
+        .risk-tag-high { background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3); color: #fca5a5; border-radius: 6px; padding: 0.2rem 0.6rem; font-size: 0.7rem; font-weight: 600; }
+
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; } }
+    </style>
+</head>
+<body>
+
+<div class="mouse-spotlight" style="position:fixed;inset:0;z-index:99;pointer-events:none;"></div>
+
+<div class="deck">
+
+    <!-- SLIDE 1: TITLE -->
+    <div class="slide slide-1 active" data-slide="1">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:520px;height:520px;top:-120px;right:-80px;background:#c084fc;opacity:0.16;"></div>
+            <div class="blob" style="width:320px;height:320px;bottom:-60px;left:-60px;background:#f0abfc;opacity:0.12;"></div>
+            <div class="blob" style="width:220px;height:220px;top:45%;left:12%;background:#fb923c;opacity:0.09;"></div>
+        </div>
+        <canvas class="particle-canvas" style="position:absolute;inset:0;z-index:1;"></canvas>
+        <div class="content text-center">
+            <div class="text-[72px] mb-4 animate-[float_3s_ease-in-out_infinite]">🎭</div>
+            <h1 class="font-display text-[clamp(3rem,7vw,5.5rem)] font-bold bg-linear-to-br from-accent-1 via-accent-2 to-accent-1 bg-clip-text text-transparent tracking-tight mb-3 reveal leading-tight">GLIER LIVE</h1>
+            <p class="text-[clamp(0.85rem,1.4vw,1.2rem)] font-light text-text-muted tracking-[5px] uppercase reveal mb-4">Концертно-Гастрольний Департамент</p>
+            <p class="text-[clamp(0.8rem,1.2vw,1rem)] text-text-secondary reveal" style="max-width:580px;margin:0 auto;">Академія імені Р.&nbsp;М.&nbsp;Глієра · Концепція розвитку · 2026</p>
+            <div class="flex items-center justify-center gap-4 mt-5 reveal">
+                <span class="accent-tag">Студенти</span>
+                <span class="accent-tag">Концерти</span>
+                <span class="accent-tag">Міжнародний вихід</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 2: ПРОБЛЕМА — ЧОМУ ЦЕ ПОТРІБНО -->
+    <div class="slide slide-2" data-slide="2">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:380px;height:380px;top:-80px;right:-60px;background:#c084fc;opacity:0.09;"></div>
+            <div class="blob" style="width:260px;height:260px;bottom:-50px;left:-40px;background:#f0abfc;opacity:0.07;"></div>
+        </div>
+        <div class="content">
+            <span class="accent-tag reveal">Аналіз проблематики</span>
+            <h2 class="font-display text-[clamp(2rem,4.5vw,3rem)] font-bold mt-3 mb-1 reveal">Де розрив між талантом і видимістю?</h2>
+            <div class="divider-line reveal"></div>
+            <div class="grid grid-cols-2 gap-4 mt-5">
+                <div class="accent-border-card reveal">
+                    <div class="flex items-center gap-2 mb-1"><span class="text-xl">🎓</span><span class="font-semibold text-text text-sm">Сценічна практика</span></div>
+                    <p class="text-text-muted text-sm leading-relaxed">Студенти грають переважно у внутрішніх концертах. Реальних гастролей, фестивалів і виступів перед «чужою» аудиторією — мінімум</p>
+                </div>
+                <div class="accent-border-card reveal">
+                    <div class="flex items-center gap-2 mb-1"><span class="text-xl">📋</span><span class="font-semibold text-text text-sm">Відсутній промо-пакет</span></div>
+                    <p class="text-text-muted text-sm leading-relaxed">Немає EPK (Electronic Press Kit), професійного відео, підготовленого біо. Без цього — жодне міжнародне запрошення неможливе</p>
+                </div>
+                <div class="accent-border-card reveal">
+                    <div class="flex items-center gap-2 mb-1"><span class="text-xl">🌐</span><span class="font-semibold text-text text-sm">Ізоляція від індустрії</span></div>
+                    <p class="text-text-muted text-sm leading-relaxed">Немає системних зв'язків з букерами, фестивалями, резиденціями, культурними інституціями в Україні та за кордоном</p>
+                </div>
+                <div class="accent-border-card reveal">
+                    <div class="flex items-center gap-2 mb-1"><span class="text-xl">🎬</span><span class="font-semibold text-text text-sm">Цифрова невидимість</span></div>
+                    <p class="text-text-muted text-sm leading-relaxed">У 2026 р. 70% виторгу музичної індустрії — стрімінг і цифровий контент. Академія Глієра майже не присутня онлайн</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: СВІТОВИЙ КОНТЕКСТ -->
+    <div class="slide slide-3" data-slide="3">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:400px;height:400px;top:-100px;left:-80px;background:#c084fc;opacity:0.1;"></div>
+            <div class="blob" style="width:280px;height:280px;bottom:-60px;right:-40px;background:#fb923c;opacity:0.08;"></div>
+        </div>
+        <div class="content">
+            <span class="accent-tag reveal">Світовий досвід</span>
+            <h2 class="font-display text-[clamp(1.9rem,4vw,2.8rem)] font-bold mt-3 mb-2 reveal">Як провідні вузи вже це роблять</h2>
+            <div class="divider-line reveal"></div>
+            <div class="flex flex-col gap-3 mt-4">
+                <div class="world-ref-row reveal">
+                    <div style="min-width:110px;"><span class="font-bold text-accent-1 text-sm">RCM Лондон</span><br><span class="text-text-muted" style="font-size:0.7rem;">Creative Careers</span></div>
+                    <p class="text-text-secondary text-sm leading-relaxed">Центр Creative Careers Centre: 500+ студентів щорічно отримують оплачувані виступи, кар'єрні консультації, доступ до букерів — і підтримку <strong>5 років після випуску</strong></p>
+                </div>
+                <div class="world-ref-row reveal">
+                    <div style="min-width:110px;"><span class="font-bold text-accent-1 text-sm">Juilliard</span><br><span class="text-text-muted" style="font-size:0.7rem;">NYC</span></div>
+                    <p class="text-text-secondary text-sm leading-relaxed">Alan D. Marks Center: менторство, портфоліо, 500+ кар'єрних подій/рік, програма Hire Juilliard Performers — пряме підключення виконавців до роботодавців</p>
+                </div>
+                <div class="world-ref-row reveal">
+                    <div style="min-width:110px;"><span class="font-bold text-accent-1 text-sm">Berklee Valencia</span><br><span class="text-text-muted" style="font-size:0.7rem;">Іспанія</span></div>
+                    <p class="text-text-secondary text-sm leading-relaxed">Програма BPMI Abroad 2026: студенти самостійно керують турами (The Great Escape UK, Southside DE, Pinkpop NL) — <strong>живий досвід туру</strong> як академічна дисципліна</p>
+                </div>
+                <div class="world-ref-row reveal">
+                    <div style="min-width:110px;"><span class="font-bold text-accent-1 text-sm">Music Export Ukraine</span><br><span class="text-text-muted" style="font-size:0.7rem;">Київ</span></div>
+                    <p class="text-text-secondary text-sm leading-relaxed">MEU: showcase-фестивалі, шоукейси за кордоном, B2B-конференції, консалтинг для артистів — <strong>без самого вузу</strong>, ініціатива знизу</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 4: РИНОК І ТРЕНДИ -->
+    <div class="slide slide-4" data-slide="4">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:450px;height:450px;top:-100px;right:-90px;background:#c084fc;opacity:0.11;"></div>
+            <div class="blob" style="width:200px;height:200px;bottom:-40px;left:-30px;background:#f0abfc;opacity:0.08;"></div>
+        </div>
+        <div class="content">
+            <span class="accent-tag reveal">Контекст ринку 2026</span>
+            <h2 class="font-display text-[clamp(1.9rem,4vw,2.8rem)] font-bold mt-3 mb-2 reveal">Де зараз знаходиться музична індустрія</h2>
+            <div class="divider-line reveal"></div>
+            <div class="grid grid-cols-3 gap-5 mt-5">
+                <div class="glass-card p-5 text-center reveal hover:-translate-y-1 transition">
+                    <div class="font-display text-[2.4rem] font-bold stat-glow glow-pulse bg-linear-to-br from-accent-1 to-accent-2 bg-clip-text text-transparent">$31.7B</div>
+                    <div class="text-text-muted text-xs uppercase tracking-wider mt-1">Виторг recorded music 2025</div>
+                    <p class="text-text-secondary text-xs mt-2 leading-relaxed">11-й рік зростання поспіль. +6.4% YoY. Рекорд в номінальних показниках</p>
+                </div>
+                <div class="glass-card p-5 text-center reveal hover:-translate-y-1 transition">
+                    <div class="font-display text-[2.4rem] font-bold stat-glow glow-pulse bg-linear-to-br from-accent-1 to-accent-2 bg-clip-text text-transparent">70%</div>
+                    <div class="text-text-muted text-xs uppercase tracking-wider mt-1">Виторг — цифровий</div>
+                    <p class="text-text-secondary text-xs mt-2 leading-relaxed">Стрімінг: $22B. Spotify — 615 млн активних користувачів. Нові артисти = цифровий слід</p>
+                </div>
+                <div class="glass-card p-5 text-center reveal hover:-translate-y-1 transition">
+                    <div class="font-display text-[2.4rem] font-bold stat-glow glow-pulse bg-linear-to-br from-accent-1 to-accent-2 bg-clip-text text-transparent">🎪</div>
+                    <div class="text-text-muted text-xs uppercase tracking-wider mt-1">Живі концерти — відновились</div>
+                    <p class="text-text-secondary text-xs mt-2 leading-relaxed">Postpandemic live music boom. Фестивалі, камерні формати, shookcase-тури знову в попиті</p>
+                </div>
+            </div>
+            <div class="glass-card p-4 mt-4 reveal">
+                <p class="text-text-secondary text-sm leading-relaxed"><span class="text-accent-1 font-semibold">Ключовий висновок:</span> Музика України як культурна дипломатія 2022–2025 стала феноменом стійкості — <em>touring + digital formats = cultural diplomacy tools</em>. Академія Глієра може скористатися цим вікном видимості прямо зараз</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: АНАЛІЗ ІДЕЙ -->
+    <div class="slide slide-5" data-slide="5">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:350px;height:350px;top:-70px;right:-70px;background:#c084fc;opacity:0.09;"></div>
+            <div class="blob" style="width:240px;height:240px;bottom:-50px;left:-30px;background:#fb923c;opacity:0.08;"></div>
+        </div>
+        <canvas class="particle-canvas-ambient" style="position:absolute;inset:0;z-index:1;"></canvas>
+        <div class="content">
+            <span class="accent-tag reveal">Порівняння моделей</span>
+            <h2 class="font-display text-[clamp(1.8rem,3.8vw,2.7rem)] font-bold mt-3 mb-2 reveal">4 ідеї — аналіз потенціалу vs ризику</h2>
+            <div class="divider-line reveal"></div>
+            <div class="grid grid-cols-2 gap-3 mt-4">
+                <div class="glass-card p-4 reveal hover:-translate-y-1 transition">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-semibold text-sm text-text">🎺 Концертне агентство</span>
+                        <span class="risk-tag-med">Середній ризик</span>
+                    </div>
+                    <p class="text-text-muted text-xs leading-relaxed mb-2">Пряме бронювання студентів на майданчики. Потребує юридичної бази, менеджерів, постійного потоку запитів</p>
+                    <div class="text-xs"><span class="text-green-400">✓ Прямий заробіток</span> · <span class="text-red-400">✗ Складна логістика</span></div>
+                </div>
+                <div class="glass-card p-4 reveal hover:-translate-y-1 transition">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-semibold text-sm text-text">🎬 Live Video Sessions</span>
+                        <span class="risk-tag-low">Низький ризик</span>
+                    </div>
+                    <p class="text-text-muted text-xs leading-relaxed mb-2">Регулярні відеозйомки студентів. Відносно дешево. Але без системи дистрибуції — залишаться непоміченими</p>
+                    <div class="text-xs"><span class="text-green-400">✓ Реалістичний старт</span> · <span class="text-yellow-400">~ Потрібна екосистема</span></div>
+                </div>
+                <div class="glass-card p-4 reveal hover:-translate-y-1 transition">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-semibold text-sm text-text">🌍 Міжнар. гастрольна лаб.</span>
+                        <span class="risk-tag-high">Високий ризик</span>
+                    </div>
+                    <p class="text-text-muted text-xs leading-relaxed mb-2">Навчальний тур студентів Berklee-style. Дорого, складно, потребує серйозних партнерств + безпека для артистів</p>
+                    <div class="text-xs"><span class="text-green-400">✓ Максимальний вплив</span> · <span class="text-red-400">✗ Найвищий поріг входу</span></div>
+                </div>
+                <div class="glass-card p-4 reveal hover:-translate-y-1 transition border-2" style="border-color: rgba(192,132,252,0.4);">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-semibold text-sm text-accent-1">⭐ GLIER LIVE Hub (ВИБІР)</span>
+                        <span class="risk-tag-low">Оптим. ризик</span>
+                    </div>
+                    <p class="text-text-muted text-xs leading-relaxed mb-2">Комплексна екосистема: EPK + відео + showcase + партнерства + гранти. Модульний підхід — старт малий, масштаб великий</p>
+                    <div class="text-xs"><span class="text-green-400">✓ Реалістично + масштабовано</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 6: КОНЦЕПЦІЯ — GLIER LIVE HUB -->
+    <div class="slide slide-6" data-slide="6">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:500px;height:500px;top:-130px;right:-100px;background:#c084fc;opacity:0.14;"></div>
+            <div class="blob" style="width:300px;height:300px;bottom:-70px;left:-50px;background:#f0abfc;opacity:0.1;"></div>
+            <div class="blob" style="width:180px;height:180px;top:40%;left:5%;background:#fb923c;opacity:0.08;"></div>
+        </div>
+        <div class="content text-center">
+            <span class="accent-tag reveal">Обрана концепція</span>
+            <h1 class="font-display text-[clamp(3rem,7vw,5rem)] font-bold bg-linear-to-br from-accent-1 via-accent-2 to-accent-1 bg-clip-text text-transparent mt-3 mb-2 reveal">GLIER LIVE Hub</h1>
+            <p class="text-text-secondary text-[clamp(1rem,1.8vw,1.3rem)] reveal mb-5" style="max-width:660px;margin:0 auto 1.5rem;">Жива система, яка перетворює академічний талант на публічну присутність — через відео, майданчики, партнерства та міжнародний вихід</p>
+            <div class="glass-card p-5 reveal" style="text-align:left;max-width:700px;margin:0 auto;">
+                <p class="text-text-secondary text-sm leading-relaxed"><span class="text-accent-1 font-bold">Слоган:</span> <em>"Від аудиторії — на сцену світу"</em></p>
+                <div class="divider-line mt-3 mb-3"></div>
+                <p class="text-text-muted text-xs leading-relaxed">GLIER LIVE Hub — це не концертна каса і не PR-служба. Це <strong>живий центр артист-менеджменту</strong> всередині академії: одночасно навчальна лабораторія, цифрова платформа, промо-команда та міжнародний офіс.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 7: 4 МОДУЛІ -->
+    <div class="slide slide-7" data-slide="7">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:380px;height:380px;top:-80px;right:-60px;background:#c084fc;opacity:0.09;"></div>
+            <div class="blob" style="width:250px;height:250px;bottom:-50px;left:-40px;background:#f0abfc;opacity:0.07;"></div>
+        </div>
+        <div class="content">
+            <span class="accent-tag reveal">Структура Hub</span>
+            <h2 class="font-display text-[clamp(1.9rem,4vw,2.8rem)] font-bold mt-3 mb-2 reveal">4 операційних модулі</h2>
+            <div class="divider-line reveal"></div>
+            <div class="grid grid-cols-2 gap-4 mt-4">
+                <div class="glass-card p-5 reveal hover:-translate-y-1 transition">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="number-badge">1</div>
+                        <span class="font-bold text-accent-1">EPK Studio</span>
+                    </div>
+                    <p class="text-text-secondary text-sm leading-relaxed">Виробництво профілю артиста: фото, відео-візитка, біо укр/англ/нім, repertoire list, QR-лінк. Кожен студент 3+ курсу отримує готовий цифровий пакет</p>
+                </div>
+                <div class="glass-card p-5 reveal hover:-translate-y-1 transition">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="number-badge">2</div>
+                        <span class="font-bold text-accent-1">GLIER Sessions</span>
+                    </div>
+                    <p class="text-text-secondary text-sm leading-relaxed">Щомісячна live video серія — якісні зйомки виступів у стилі Tiny Desk / La Boîte Noire. YouTube + TikTok + Spotify Canvas. Промо академії і артистів одночасно</p>
+                </div>
+                <div class="glass-card p-5 reveal hover:-translate-y-1 transition">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="number-badge">3</div>
+                        <span class="font-bold text-accent-1">Showcase & Booking</span>
+                    </div>
+                    <p class="text-text-secondary text-sm leading-relaxed">База партнерських майданчиків, фестивалів, культурних центрів. Системне бронювання виступів: від Kyiv Jazz Fest до House of Europe грантових резиденцій в ЄС</p>
+                </div>
+                <div class="glass-card p-5 reveal hover:-translate-y-1 transition">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="number-badge">4</div>
+                        <span class="font-bold text-accent-1">Touring Lab</span>
+                    </div>
+                    <p class="text-text-secondary text-sm leading-relaxed">Студенти як продюсери власних мікрогастролей. Навчальний модуль Berklee-style: тур-менеджмент, бюджетування, логістика, промо — як академічна практика</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 8: ЦІЛЬОВІ АУДИТОРІЇ ТА ЖАНРИ -->
+    <div class="slide slide-8" data-slide="8">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:420px;height:420px;top:-90px;left:-70px;background:#c084fc;opacity:0.1;"></div>
+            <div class="blob" style="width:260px;height:260px;bottom:-60px;right:-40px;background:#fb923c;opacity:0.08;"></div>
+        </div>
+        <div class="content">
+            <span class="accent-tag reveal">Кого і що представляємо</span>
+            <h2 class="font-display text-[clamp(1.9rem,4vw,2.8rem)] font-bold mt-3 mb-2 reveal">Аудиторії та жанровий спектр</h2>
+            <div class="divider-line reveal"></div>
+            <div class="grid grid-cols-2 gap-5 mt-4">
+                <div>
+                    <p class="text-text-muted text-xs uppercase tracking-wider mb-3 font-semibold reveal">Хто є бенефіціарами</p>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-2 reveal"><span class="text-accent-1 text-sm">→</span><span class="text-text-secondary text-sm">Студенти 3–5 курсів та магістри</span></div>
+                        <div class="flex items-center gap-2 reveal"><span class="text-accent-1 text-sm">→</span><span class="text-text-secondary text-sm">Випускники (до 3 років після диплому)</span></div>
+                        <div class="flex items-center gap-2 reveal"><span class="text-accent-1 text-sm">→</span><span class="text-text-secondary text-sm">Камерні ансамблі та творчі лаби</span></div>
+                        <div class="flex items-center gap-2 reveal"><span class="text-accent-1 text-sm">→</span><span class="text-text-secondary text-sm">Викладачі-виконавці та солісти</span></div>
+                        <div class="flex items-center gap-2 reveal"><span class="text-accent-1 text-sm">→</span><span class="text-text-secondary text-sm">Культурні партнери та міські громади</span></div>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-text-muted text-xs uppercase tracking-wider mb-3 font-semibold reveal">Жанри без меж</p>
+                    <div class="flex flex-wrap gap-2 reveal">
+                        <span class="accent-tag">Академічна музика</span>
+                        <span class="accent-tag">Джаз</span>
+                        <span class="accent-tag">Фольклор</span>
+                        <span class="accent-tag">Сучасна опера</span>
+                        <span class="accent-tag">Саундарт</span>
+                        <span class="accent-tag">Авторська пісня</span>
+                        <span class="accent-tag">Музика до кіно</span>
+                        <span class="accent-tag">Імпровізація</span>
+                        <span class="accent-tag">Хорова музика</span>
+                        <span class="accent-tag">Камерна</span>
+                    </div>
+                    <p class="text-text-muted text-xs mt-4 reveal leading-relaxed">Міжжанровий підхід — конкурентна перевага. Академія Глієра з 1868 р. охоплює весь спектр. Це унікально навіть у світовому контексті</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 9: ПАРТНЕРСТВА І ГРАНТИ -->
+    <div class="slide slide-9" data-slide="9">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:400px;height:400px;top:-100px;right:-80px;background:#c084fc;opacity:0.1;"></div>
+            <div class="blob" style="width:240px;height:240px;bottom:-50px;left:-30px;background:#f0abfc;opacity:0.08;"></div>
+        </div>
+        <div class="content">
+            <span class="accent-tag reveal">Екосистема партнерств</span>
+            <h2 class="font-display text-[clamp(1.9rem,4vw,2.8rem)] font-bold mt-3 mb-2 reveal">Хто вже чекає на таку ініціативу</h2>
+            <div class="divider-line reveal"></div>
+            <div class="grid grid-cols-3 gap-3 mt-4">
+                <div class="glass-card p-4 reveal">
+                    <p class="text-accent-1 font-bold text-sm mb-2">🏛️ Культурні інституції</p>
+                    <p class="text-text-muted text-xs leading-relaxed">Goethe-Institut, British Council, Французький інститут, Польський інститут, Посольства ЄС — всі активно підтримують UA-культуру</p>
+                </div>
+                <div class="glass-card p-4 reveal">
+                    <p class="text-accent-1 font-bold text-sm mb-2">💶 Грантові програми</p>
+                    <p class="text-text-muted text-xs leading-relaxed">House of Europe: до €50 000 на проект. EFFEA резиденції: до €15 000. Сьома хвиля — ел. музика, саундарт, театр, міждисципл.</p>
+                </div>
+                <div class="glass-card p-4 reveal">
+                    <p class="text-accent-1 font-bold text-sm mb-2">🌍 Міжнар. мережі</p>
+                    <p class="text-text-muted text-xs leading-relaxed">Music Export Ukraine (MEU), Soundstreams, UNESCO City of Music, European Music Export Network — готові до партнерства</p>
+                </div>
+                <div class="glass-card p-4 reveal">
+                    <p class="text-accent-1 font-bold text-sm mb-2">🎪 Фестивалі й майданчики</p>
+                    <p class="text-text-muted text-xs leading-relaxed">Kyiv Jazz Fest, Bouquet Kyiv Stage, Країна Мрій, Meridian Czernowitz, музеї, бібліотеки, культурні центри Києва</p>
+                </div>
+                <div class="glass-card p-4 reveal">
+                    <p class="text-accent-1 font-bold text-sm mb-2">📺 Медіа та цифра</p>
+                    <p class="text-text-muted text-xs leading-relaxed">UA:Перший, Суспільне Музика, YouTube-канали, Radio Wigwam (UK) — радіостанція вже співпрацює з Music Export Ukraine</p>
+                </div>
+                <div class="glass-card p-4 reveal">
+                    <p class="text-accent-1 font-bold text-sm mb-2">🏙️ Міська громада</p>
+                    <p class="text-text-muted text-xs leading-relaxed">Київська міська рада (засновник КМАМ), бізнес-партнери, благодійні фонди, корпоративні замовники для приватних концертів</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 10: РИЗИКИ ТА ЯК ЇХНІ МІНІМІЗУВАТИ -->
+    <div class="slide slide-10" data-slide="10">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:380px;height:380px;top:-80px;left:-60px;background:#c084fc;opacity:0.09;"></div>
+            <div class="blob" style="width:220px;height:220px;bottom:-40px;right:-30px;background:#fb923c;opacity:0.08;"></div>
+        </div>
+        <div class="content">
+            <span class="accent-tag reveal">Чесний аналіз</span>
+            <h2 class="font-display text-[clamp(1.9rem,4vw,2.8rem)] font-bold mt-3 mb-2 reveal">Ризики та як їх мінімізувати</h2>
+            <div class="divider-line reveal"></div>
+            <div class="flex flex-col gap-3 mt-4">
+                <div class="flex items-start gap-3 reveal" style="background:rgba(248,113,113,0.06);border-radius:10px;padding:0.8rem 1rem;border-left:3px solid rgba(248,113,113,0.4);">
+                    <span class="risk-tag-high" style="flex-shrink:0;margin-top:2px;">Фінанси</span>
+                    <div><p class="text-text-secondary text-sm">Брак стартового бюджету → <span class="text-green-400 font-medium">Мінімізація:</span> Почати з House of Europe мікрогранту (€6–16k). Модульний запуск: спершу EPK + Sessions (мінімальні витрати), потім Booking + Lab</p></div>
+                </div>
+                <div class="flex items-start gap-3 reveal" style="background:rgba(251,146,60,0.06);border-radius:10px;padding:0.8rem 1rem;border-left:3px solid rgba(251,146,60,0.4);">
+                    <span class="risk-tag-med" style="flex-shrink:0;margin-top:2px;">Кадри</span>
+                    <div><p class="text-text-secondary text-sm">Відсутність досвідчених менеджерів → <span class="text-green-400 font-medium">Мінімізація:</span> Партнерство з Music Export Ukraine для менторства. Залучення студентів менеджменту як внутрішньої команди Hub (= навчальна практика)</p></div>
+                </div>
+                <div class="flex items-start gap-3 reveal" style="background:rgba(251,146,60,0.06);border-radius:10px;padding:0.8rem 1rem;border-left:3px solid rgba(251,146,60,0.4);">
+                    <span class="risk-tag-med" style="flex-shrink:0;margin-top:2px;">Безпека</span>
+                    <div><p class="text-text-secondary text-sm">Воєнний час — обмеження міжнарон. поїздок → <span class="text-green-400 font-medium">Мінімізація:</span> Пріоритет онлайн-форматам та закордонним запрошенням. Спершу — дистанційні перформанси, потім фізичні. Цифровий слід будується вже зараз</p></div>
+                </div>
+                <div class="flex items-start gap-3 reveal" style="background:rgba(34,197,94,0.06);border-radius:10px;padding:0.8rem 1rem;border-left:3px solid rgba(34,197,94,0.4);">
+                    <span class="risk-tag-low" style="flex-shrink:0;margin-top:2px;">Юридичне</span>
+                    <div><p class="text-text-secondary text-sm">Авторські права, ліцензії → <span class="text-green-400 font-medium">Мінімізація:</span> Консультація юриста на старті. Використання Creative Commons там, де можливо. Всі угоди — через академічну адміністрацію</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 11: ДОРОЖНЯ КАРТА -->
+    <div class="slide slide-11" data-slide="11">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:430px;height:430px;top:-100px;right:-90px;background:#c084fc;opacity:0.1;"></div>
+            <div class="blob" style="width:250px;height:250px;bottom:-60px;left:-40px;background:#f0abfc;opacity:0.08;"></div>
+        </div>
+        <div class="content">
+            <span class="accent-tag reveal">Реалізація</span>
+            <h2 class="font-display text-[clamp(1.9rem,4vw,2.8rem)] font-bold mt-3 mb-2 reveal">Дорожня карта запуску</h2>
+            <div class="divider-line reveal"></div>
+            <div class="flex flex-col gap-3 mt-4" style="position:relative;">
+                <div style="position:absolute;left:18px;top:24px;bottom:24px;width:2px;background:linear-gradient(to bottom,#c084fc,#f0abfc,#fb923c);border-radius:2px;opacity:0.4;"></div>
+                <div class="flex items-start gap-4 reveal" style="padding-left:46px;position:relative;">
+                    <div style="position:absolute;left:10px;top:4px;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#c084fc,#f0abfc);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#0e0c18;">1</div>
+                    <div><p class="text-accent-1 text-sm font-bold">Місяць 1–2 · Фундамент</p><p class="text-text-secondary text-xs leading-relaxed">Формування команди Hub (2–3 студенти-менеджери + куратор). Аудит існуючих артистів. Шаблон EPK. Технічне обладнання для зйомок. Подача на House of Europe мікрогрант</p></div>
+                </div>
+                <div class="flex items-start gap-4 reveal" style="padding-left:46px;position:relative;">
+                    <div style="position:absolute;left:10px;top:4px;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#c084fc,#f0abfc);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#0e0c18;">2</div>
+                    <div><p class="text-accent-1 text-sm font-bold">Місяць 3–5 · Пілот</p><p class="text-text-secondary text-xs leading-relaxed">Перший пілотний GLIER Sessions (3–5 артистів). Запуск YouTube-каналу. 5–8 EPK готових. Перші переговори з майданчиками Києва. Showcase-виступ на партнерському фестивалі</p></div>
+                </div>
+                <div class="flex items-start gap-4 reveal" style="padding-left:46px;position:relative;">
+                    <div style="position:absolute;left:10px;top:4px;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#c084fc,#f0abfc);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#0e0c18;">3</div>
+                    <div><p class="text-accent-1 text-sm font-bold">Місяць 6–10 · Масштаб</p><p class="text-text-secondary text-xs leading-relaxed">Щомісячний Sessions (мінімум 2/міс). 20+ EPK. Перші міжнародні запрошення через MEU + Goethe. Touring Lab як курс за вибором. Перші закордонні виступи (онлайн або офлайн)</p></div>
+                </div>
+                <div class="flex items-start gap-4 reveal" style="padding-left:46px;position:relative;">
+                    <div style="position:absolute;left:10px;top:4px;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#fb923c,#f0abfc);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#0e0c18;">★</div>
+                    <div><p class="text-[#fb923c] text-sm font-bold">Рік 2 · Системний результат</p><p class="text-text-secondary text-xs leading-relaxed">GLIER LIVE Hub як інституційна одиниця. Щорічний власний showcase-фестиваль. Партнерство 3+ міжнар. інституцій. Самофінансування через партнерства та гранти</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 12: РЕЗУЛЬТАТИ -->
+    <div class="slide slide-12" data-slide="12">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:450px;height:450px;top:-110px;right:-90px;background:#c084fc;opacity:0.12;"></div>
+            <div class="blob" style="width:280px;height:280px;bottom:-70px;left:-50px;background:#f0abfc;opacity:0.09;"></div>
+        </div>
+        <div class="content">
+            <span class="accent-tag reveal">Очікувані результати</span>
+            <h2 class="font-display text-[clamp(1.9rem,4vw,2.8rem)] font-bold mt-3 mb-2 reveal">Що отримає Академія та студенти</h2>
+            <div class="divider-line reveal"></div>
+            <div class="grid grid-cols-3 gap-4 mt-4">
+                <div class="glass-card p-4 text-center reveal hover:-translate-y-1 transition">
+                    <div class="font-display text-[2.2rem] font-bold stat-glow bg-linear-to-br from-accent-1 to-accent-2 bg-clip-text text-transparent">100+</div>
+                    <p class="text-text-muted text-xs uppercase tracking-wider mt-1">EPK артистів щорічно</p>
+                    <p class="text-text-secondary text-xs mt-2">Кожен студент — з готовим промо-пакетом для букерів і фестивалів</p>
+                </div>
+                <div class="glass-card p-4 text-center reveal hover:-translate-y-1 transition">
+                    <div class="font-display text-[2.2rem] font-bold stat-glow bg-linear-to-br from-accent-1 to-accent-2 bg-clip-text text-transparent">24+</div>
+                    <p class="text-text-muted text-xs uppercase tracking-wider mt-1">Відеосесій на рік</p>
+                    <p class="text-text-secondary text-xs mt-2">Постійний цифровий контент = присутність в алгоритмах YouTube/TikTok</p>
+                </div>
+                <div class="glass-card p-4 text-center reveal hover:-translate-y-1 transition">
+                    <div class="font-display text-[2.2rem] font-bold stat-glow bg-linear-to-br from-accent-1 to-accent-2 bg-clip-text text-transparent">🌍</div>
+                    <p class="text-text-muted text-xs uppercase tracking-wider mt-1">Міжнародний вихід</p>
+                    <p class="text-text-secondary text-xs mt-2">Перші EU-виступи, резиденції, showcase-запрошення до кінця 2-го року</p>
+                </div>
+            </div>
+            <div class="glass-card p-4 mt-4 reveal">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-accent-1 font-semibold text-sm mb-2">Для студентів:</p>
+                        <p class="text-text-secondary text-xs leading-relaxed">Сценічна практика → Портфоліо → Зв'язки → Працевлаштування. Готовий профіль для міжнар. конкурсів, резиденцій, фестивалів</p>
+                    </div>
+                    <div>
+                        <p class="text-accent-1 font-semibold text-sm mb-2">Для Академії:</p>
+                        <p class="text-text-secondary text-xs leading-relaxed">Підвищення видимості та репутації. Нові партнерства. Залучення фінансування. Позиціонування як інноваційного вузу в умовах відбудови України</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 13: ЗАКРИТТЯ -->
+    <div class="slide slide-13" data-slide="13">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:550px;height:550px;top:-120px;right:-100px;background:#c084fc;opacity:0.17;"></div>
+            <div class="blob" style="width:350px;height:350px;bottom:-80px;left:-70px;background:#f0abfc;opacity:0.12;"></div>
+            <div class="blob" style="width:220px;height:220px;top:35%;left:8%;background:#fb923c;opacity:0.09;"></div>
+        </div>
+        <canvas class="particle-canvas" style="position:absolute;inset:0;z-index:1;"></canvas>
+        <div class="content text-center">
+            <div class="text-[64px] mb-3 animate-[float_3s_ease-in-out_infinite]">🎶</div>
+            <h1 class="font-display text-[clamp(2.8rem,6.5vw,5rem)] font-bold bg-linear-to-br from-accent-1 via-accent-2 to-accent-1 bg-clip-text text-transparent mb-3 reveal">Від аудиторії —</h1>
+            <h1 class="font-display text-[clamp(2.8rem,6.5vw,5rem)] font-bold bg-linear-to-br from-accent-3 via-accent-2 to-accent-1 bg-clip-text text-transparent mb-4 reveal">на сцену світу</h1>
+            <div class="glass-card p-5 reveal" style="max-width:640px;margin:0 auto;">
+                <p class="text-text-secondary text-sm leading-relaxed mb-3">GLIER LIVE Hub — це не мрія. Це конкретна, реалістична система, яку підтверджують RCM, Juilliard, Berklee, Music Export Ukraine та сотні схожих ініціатив у світі.</p>
+                <p class="text-text-muted text-xs"><em>Академія Глієра — найстаріший музичний заклад України (1868). Час стати і найвидимішим.</em></p>
+            </div>
+            <div class="flex items-center justify-center gap-4 mt-5 reveal">
+                <span class="accent-tag">GLIER LIVE Hub</span>
+                <span class="text-text-muted">·</span>
+                <span class="accent-tag">2026</span>
+                <span class="text-text-muted">·</span>
+                <span class="accent-tag">Академія Глієра</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav-controls">
+    <button class="nav-btn" onclick="changeSlide(-1)">&#8249;</button>
+    <div class="slide-dots" id="dots"></div>
+    <button class="nav-btn" onclick="changeSlide(1)">&#8250;</button>
+    <span class="slide-counter" id="counter">1 / 13</span>
+</div>
+
+<script>
+    let current = 1;
+    const total = document.querySelectorAll('.slide').length;
+    const dotsContainer = document.getElementById('dots');
+    const counter = document.getElementById('counter');
+    for (let i = 1; i <= total; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'dot' + (i === 1 ? ' active' : '');
+        dot.onclick = () => goToSlide(i);
+        dotsContainer.appendChild(dot);
+    }
+    function goToSlide(n) {
+        const prev = document.querySelector('.slide.active');
+        const next = document.querySelector(`.slide[data-slide="${n}"]`);
+        if (prev) prev.classList.remove('active');
+        if (next) { next.classList.add('active'); animateSlide(next); }
+        current = n; updateNav();
+    }
+    function changeSlide(dir) { let n = current + dir; if (n < 1) n = total; if (n > total) n = 1; goToSlide(n); }
+    function updateNav() {
+        document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i+1===current));
+        counter.textContent = current + ' / ' + total;
+    }
+    document.addEventListener('keydown', e => {
+        if (e.key==='ArrowRight'||e.key===' ') { e.preventDefault(); changeSlide(1); }
+        if (e.key==='ArrowLeft') { e.preventDefault(); changeSlide(-1); }
+    });
+    let touchStartX=0;
+    document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+    document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].clientX; if(Math.abs(d)>50) changeSlide(d>0?1:-1); });
+
+    function animateSlide(slide) {
+        slide.querySelectorAll('.reveal').forEach((el,i) => {
+            el.style.transition = 'none';
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(22px)';
+            el.offsetHeight;
+            const delay = i * 0.075;
+            el.style.transition = `opacity 0.38s ease ${delay}s, transform 0.38s ease ${delay}s`;
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0px)';
+        });
+        animateSlideEffects(slide);
+    }
+
+    function animateSlideEffects(slide) {
+        slide.querySelectorAll('[data-count]:not(.counted)').forEach(el => {
+            el.classList.add('counted');
+            const target=parseInt(el.dataset.count), suffix=el.dataset.suffix||'', prefix=el.dataset.prefix||'';
+            let cur=0; const step=target/40;
+            const t=setInterval(()=>{ cur+=step; if(cur>=target){cur=target;clearInterval(t);} el.textContent=prefix+Math.round(cur).toLocaleString()+suffix; },30);
+        });
+        slide.querySelectorAll('.bar-fill:not(.fill-init)').forEach((bar,i)=>{
+            bar.classList.add('fill-init');
+            bar.style.width='0%'; bar.style.transition=`width 0.7s ease ${i*0.1}s`; bar.offsetHeight; bar.style.width=bar.dataset.width+'%';
+        });
+    }
+
+    document.addEventListener('mousemove', e => {
+        const s = document.querySelector('.mouse-spotlight');
+        if(s) s.style.background=`radial-gradient(600px circle at ${e.clientX}px ${e.clientY}px,rgba(192,132,252,0.06),transparent 40%)`;
+    });
+
+    (function(){
+        let mx=window.innerWidth/2, my=window.innerHeight/2;
+        const cx=window.innerWidth/2, cy=window.innerHeight/2;
+        document.addEventListener('mousemove', e=>{ mx=e.clientX; my=e.clientY; });
+        (function tick(){
+            const ox=(mx-cx)/cx, oy=(my-cy)/cy;
+            document.querySelectorAll('.deco-shape').forEach(s=>{
+                const sp=parseFloat(s.dataset.speed)||0.03;
+                s.style.transform=`translate(${ox*sp*100}px,${oy*sp*100}px)`;
+            });
+            requestAnimationFrame(tick);
+        })();
+    })();
+
+    window.initParticles = function(canvas, options) {
+        if(!canvas) return;
+        const ctx=canvas.getContext('2d');
+        canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight;
+        const interactive=options.interactive!==false, count=options.count||(interactive?55:18);
+        let mx=-1000, my=-1000;
+        const [r,g,b]=[192,132,252];
+        const particles=Array.from({length:count},()=>({ x:Math.random()*canvas.width, y:Math.random()*canvas.height, vx:(Math.random()-0.5)*0.3, vy:(Math.random()-0.5)*0.3, size:Math.random()*2.5+0.8, alpha:Math.random()*0.35+0.1 }));
+        if(interactive){ canvas.addEventListener('mousemove',e=>{const rect=canvas.getBoundingClientRect();mx=e.clientX-rect.left;my=e.clientY-rect.top;}); canvas.addEventListener('mouseleave',()=>{mx=-1000;my=-1000;}); }
+        (function animate(){
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            particles.forEach(p=>{
+                if(interactive){const dx=p.x-mx,dy=p.y-my,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){const f=(120-dist)/120*2;p.vx+=(dx/dist)*f*0.1;p.vy+=(dy/dist)*f*0.1;}}
+                p.vx*=0.98;p.vy*=0.98;p.x+=p.vx;p.y+=p.vy;
+                if(p.x<0)p.x=canvas.width;if(p.x>canvas.width)p.x=0;
+                if(p.y<0)p.y=canvas.height;if(p.y>canvas.height)p.y=0;
+                ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+                ctx.fillStyle=`rgba(${r},${g},${b},${p.alpha})`;ctx.fill();
+            });
+            requestAnimationFrame(animate);
+        })();
+    };
+    document.querySelectorAll('.particle-canvas').forEach(c=>window.initParticles(c,{interactive:true,count:55}));
+    document.querySelectorAll('.particle-canvas-ambient').forEach(c=>window.initParticles(c,{interactive:false,count:18}));
+
+    try { animateSlide(document.querySelector('.slide.active')); } catch(e) { console.warn(e); }
+</script>
+</body>
+</html>
