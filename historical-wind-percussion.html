@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="slides-format" content="viewport">
+    <title>Історичні персони духових та ударних інструментів</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+        @theme {
+            --color-bg: #1a0a04;
+            --color-bg-deep: #0d0400;
+            --color-surface: #2d1206;
+            --color-text: #f5ede0;
+            --color-text-secondary: #d4b896;
+            --color-text-muted: #9c7a5a;
+            --color-accent-1: #C9A84C;
+            --color-accent-2: #8B1A1A;
+            --color-accent-3: #E8D5A0;
+            --color-glass-bg: rgba(255,220,150,0.06);
+            --color-glass-border: rgba(201,168,76,0.18);
+            --color-vignette: rgba(0,0,0,0.55);
+            --font-display: 'DM Serif Display', Georgia, serif;
+            --font-body: 'DM Sans', sans-serif;
+        }
+    </style>
+    <style>
+        :root { --color-bg: #1a0a04; --color-text: #f5ede0; --glow-color-rgb: 201,168,76; }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { background: var(--color-bg); margin: 0; }
+        body { font-family: 'DM Sans', sans-serif; color: var(--color-text); overflow: hidden; height: 100vh; width: 100vw; }
+        .deck { width: 100vw; height: 100vh; position: relative; }
+        .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--color-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transform: scale(0.95); transition: opacity 0.7s ease, transform 0.7s ease; pointer-events: none; overflow: hidden; }
+        .slide.active { opacity: 1; transform: scale(1); pointer-events: all; }
+        .slide > .content { position: relative; z-index: 2; width: 100%; max-width: 1100px; padding: clamp(1.5rem, 4vw, 4rem); }
+        .nav-controls { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 16px; z-index: 100; background: rgba(201,168,76,0.08); backdrop-filter: blur(10px); padding: 10px 24px; border-radius: 40px; border: 1px solid rgba(201,168,76,0.2); }
+        .nav-btn { width: 40px; height: 40px; border: none; background: rgba(201,168,76,0.1); color: #C9A84C; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.3s; }
+        .nav-btn:hover { background: rgba(201,168,76,0.2); }
+        .slide-dots { display: flex; gap: 8px; }
+        .slide-dots .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(201,168,76,0.2); cursor: pointer; transition: background 0.3s, transform 0.3s; }
+        .slide-dots .dot.active { background: #C9A84C; transform: scale(1.3); }
+        .slide-counter { font-size: 0.8rem; color: #9c7a5a; min-width: 40px; text-align: center; }
+        .reveal { opacity: 0; transform: translateY(20px); }
+
+        /* Glow */
+        .text-glow { text-shadow: 0 0 20px rgba(201,168,76,0.5), 0 0 40px rgba(201,168,76,0.2); }
+        .stat-glow { text-shadow: 0 0 30px rgba(201,168,76,0.6), 0 0 60px rgba(201,168,76,0.25); }
+        @keyframes glow-pulse { 0%,100%{text-shadow:0 0 20px rgba(201,168,76,0.5),0 0 40px rgba(201,168,76,0.2);}50%{text-shadow:0 0 30px rgba(201,168,76,0.8),0 0 60px rgba(201,168,76,0.3);} }
+        .glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
+
+        /* Blobs */
+        @keyframes float-slow { 0%{transform:translate(0,0) scale(1);}25%{transform:translate(60px,-50px) scale(1.12);}50%{transform:translate(-40px,40px) scale(0.9);}75%{transform:translate(50px,20px) scale(1.08);}100%{transform:translate(0,0) scale(1);} }
+        @keyframes float-drift { 0%{transform:translate(0,0) scale(1) rotate(0deg);}33%{transform:translate(-50px,-60px) scale(1.15) rotate(3deg);}66%{transform:translate(40px,30px) scale(0.88) rotate(-2deg);}100%{transform:translate(0,0) scale(1) rotate(0deg);} }
+        @keyframes float { 0%,100%{transform:translateY(0);}50%{transform:translateY(-15px);} }
+        .gradient-mesh { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .blob { position: absolute; border-radius: 50%; filter: blur(80px); animation: float-slow 10s ease-in-out infinite; }
+        .blob:nth-child(2) { animation: float-drift 14s ease-in-out infinite; }
+        .blob:nth-child(3) { animation: float-slow 18s ease-in-out infinite reverse; }
+        .blob:nth-child(4) { animation: float-drift 22s ease-in-out infinite reverse; }
+
+        /* Depth */
+        .slide::before { content:''; position:absolute; inset:0; z-index:1; pointer-events:none; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); background-repeat:repeat; background-size:256px 256px; opacity:0.04; mix-blend-mode:overlay; }
+        .slide::after { content:''; position:absolute; inset:0; z-index:1; pointer-events:none; background:radial-gradient(ellipse at center, transparent 50%, var(--color-vignette) 100%); }
+
+        /* Bar fills */
+        .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #C9A84C, #E8D5A0); transition: width 0.8s ease; }
+
+        /* Ornament line */
+        .ornament { display: flex; align-items: center; gap: 12px; margin: 0.5rem 0; }
+        .ornament::before,.ornament::after { content:''; flex:1; height:1px; background: linear-gradient(90deg, transparent, rgba(201,168,76,0.4), transparent); }
+
+        /* Timeline */
+        .timeline-line { position: absolute; left: 18px; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, #C9A84C, #8B1A1A); border-radius: 2px; }
+        .timeline-dot { width: 14px; height: 14px; border-radius: 50%; background: #C9A84C; box-shadow: 0 0 10px rgba(201,168,76,0.6); flex-shrink: 0; margin-top: 4px; }
+
+        /* Scroll bar for timeline */
+        .tl-scroll { overflow: visible; }
+
+        @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:0.01ms !important; transition-duration:0.2s !important; } }
+    </style>
+</head>
+<body>
+<div class="mouse-spotlight" style="position:fixed;inset:0;z-index:99;pointer-events:none;"></div>
+<div class="deck">
+
+<!-- SLIDE 1: TITLE -->
+<div class="slide slide-1 active" data-slide="1">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:500px;height:500px;top:-120px;right:-100px;background:#8B1A1A;opacity:0.18;"></div>
+        <div class="blob" style="width:350px;height:350px;bottom:-80px;left:-80px;background:#C9A84C;opacity:0.14;"></div>
+        <div class="blob" style="width:220px;height:220px;top:35%;left:20%;background:#6B3010;opacity:0.12;"></div>
+        <div class="blob" style="width:160px;height:160px;bottom:20%;right:25%;background:#B8860B;opacity:0.10;"></div>
+    </div>
+    <canvas class="particle-canvas" style="position:absolute;inset:0;z-index:1;"></canvas>
+    <div class="content text-center">
+        <div style="font-size:clamp(4rem,12vw,6.25rem);margin-bottom:1rem;animation:float 3.5s ease-in-out infinite;letter-spacing:0.2em;" class="reveal" aria-label="Кларнет і барабани">🎷🥁</div>
+        <div class="ornament reveal"><span style="font-size:0.75rem;color:#9c7a5a;letter-spacing:4px;text-transform:uppercase;">Музична Спадщина Світу</span></div>
+        <h1 style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(2rem,4.5vw,3.6rem);background:linear-gradient(135deg,#C9A84C,#E8D5A0,#8B1A1A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2;margin:0.6rem 0;" class="reveal">Історичні Персони<br>Духових та Ударних</h1>
+        <div class="ornament reveal"><span style="font-size:0.75rem;color:#9c7a5a;letter-spacing:4px;text-transform:uppercase;">їхній вплив на виконавське мистецтво</span></div>
+        <p style="font-size:clamp(0.85rem,1.3vw,1.1rem);color:#9c7a5a;letter-spacing:5px;text-transform:uppercase;margin-top:1.2rem;" class="reveal">XIV – XIX Століття</p>
+    </div>
+</div>
+
+<!-- SLIDE 2: OVERVIEW / CONTENTS -->
+<div class="slide slide-2" data-slide="2">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:400px;height:400px;top:-100px;right:-60px;background:#8B1A1A;opacity:0.10;"></div>
+        <div class="blob" style="width:250px;height:250px;bottom:-60px;left:-40px;background:#C9A84C;opacity:0.08;"></div>
+    </div>
+    <div class="content">
+        <h2 style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.8rem,3.5vw,2.8rem);color:#C9A84C;margin-bottom:0.4rem;" class="reveal">Що охоплює ця презентація</h2>
+        <div class="ornament reveal"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:1.2rem;">
+            <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);border-radius:12px;padding:1.2rem;border-left:3px solid #C9A84C;" class="reveal">
+                <div style="font-size:1.6rem;margin-bottom:0.4rem;">📜</div>
+                <div style="font-family:'DM Serif Display',serif;font-size:1.05rem;color:#C9A84C;">Перші Методисти</div>
+                <div style="font-size:0.85rem;color:#9c7a5a;margin-top:0.3rem;">Бенделлі, Фантіні, Альтенбург — автори перших підручників гри на трубі та литаврах</div>
+            </div>
+            <div style="background:rgba(139,26,26,0.08);border:1px solid rgba(139,26,26,0.2);border-radius:12px;padding:1.2rem;border-left:3px solid #8B1A1A;" class="reveal">
+                <div style="font-size:1.6rem;margin-bottom:0.4rem;">🎻</div>
+                <div style="font-family:'DM Serif Display',serif;font-size:1.05rem;color:#E8D5A0;">Віртуози та Інноватори</div>
+                <div style="font-size:0.85rem;color:#9c7a5a;margin-top:0.3rem;">Лейтгеб, Пунто, Гампель — виконавці, що змінили техніку гри</div>
+            </div>
+            <div style="background:rgba(139,26,26,0.08);border:1px solid rgba(139,26,26,0.2);border-radius:12px;padding:1.2rem;border-left:3px solid #8B1A1A;" class="reveal">
+                <div style="font-size:1.6rem;margin-bottom:0.4rem;">⚙️</div>
+                <div style="font-family:'DM Serif Display',serif;font-size:1.05rem;color:#E8D5A0;">Реформатори Конструкції</div>
+                <div style="font-size:0.85rem;color:#9c7a5a;margin-top:0.3rem;">Блюмель, Штельцель, Бем, Вірехт — патенти, клапани, системи</div>
+            </div>
+            <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);border-radius:12px;padding:1.2rem;border-left:3px solid #C9A84C;" class="reveal">
+                <div style="font-size:1.6rem;margin-bottom:0.4rem;">🏭</div>
+                <div style="font-family:'DM Serif Display',serif;font-size:1.05rem;color:#C9A84C;">Будівники Жанрів</div>
+                <div style="font-size:0.85rem;color:#9c7a5a;margin-top:0.3rem;">Рейха, Сакс, Алярі — засновники нових форм, інструментів, оркестрів</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 3: CESARE BENDINELLI -->
+<div class="slide slide-3" data-slide="3">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:350px;height:350px;top:-80px;left:-60px;background:#C9A84C;opacity:0.09;"></div>
+        <div class="blob" style="width:280px;height:280px;bottom:-70px;right:-50px;background:#8B1A1A;opacity:0.08;"></div>
+    </div>
+    <div class="content">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;">
+            <div>
+                <div style="font-size:0.75rem;color:#9c7a5a;letter-spacing:4px;text-transform:uppercase;margin-bottom:0.5rem;" class="reveal">≈ 1542 – 1617 · Верона → Мюнхен → Інсбрук</div>
+                <h2 style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.8rem,3.5vw,2.8rem);color:#C9A84C;margin-bottom:0.3rem;" class="reveal">Чезаре Бенделлі</h2>
+                <div style="font-size:0.9rem;color:#E8D5A0;letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;" class="reveal">Перший підручник у світі</div>
+                <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;">
+                    <li style="display:flex;gap:10px;align-items:flex-start;font-size:0.92rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;margin-top:2px;">▸</span> <span>1614 рік — «<em>Tutta l'Arte della Trombetta</em>» — перший у світі задокументований метод гри на трубі</span></li>
+                    <li style="display:flex;gap:10px;align-items:flex-start;font-size:0.92rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;margin-top:2px;">▸</span> <span>Придворний трубач герцога Баварського Вільгельма V та ерцгерцога Австрійського</span></li>
+                    <li style="display:flex;gap:10px;align-items:flex-start;font-size:0.92rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;margin-top:2px;">▸</span> <span>Описав 24 фанфарні сигнали, 14 сонат та вправи — рукопис зберігається у Вероні</span></li>
+                    <li style="display:flex;gap:10px;align-items:flex-start;font-size:0.92rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;margin-top:2px;">▸</span> <span>Заклав основи натуральної трубної техніки на 200 років вперед</span></li>
+                </ul>
+            </div>
+            <div style="text-align:center;" class="reveal">
+                <div style="width:220px;height:220px;margin:0 auto;border-radius:50%;background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(139,26,26,0.2));border:2px solid rgba(201,168,76,0.3);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;">
+                    <div style="font-size:3.5rem;">📯</div>
+                    <div style="font-size:1.8rem;font-weight:700;color:#C9A84C;" class="stat-glow">1614</div>
+                    <div style="font-size:0.75rem;color:#9c7a5a;letter-spacing:2px;text-transform:uppercase;">Рік видання</div>
+                </div>
+                <div style="margin-top:1rem;font-size:0.8rem;color:#9c7a5a;font-style:italic;">«Tutta l'Arte della Trombetta»</div>
+                <div style="font-size:0.75rem;color:#6b4a2a;margin-top:0.2rem;">перший у світі метод трубача</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 4: GIROLAMO FANTINI -->
+<div class="slide slide-4" data-slide="4">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:380px;height:380px;top:-80px;right:-60px;background:#8B1A1A;opacity:0.10;"></div>
+        <div class="blob" style="width:240px;height:240px;bottom:-50px;left:-40px;background:#C9A84C;opacity:0.08;"></div>
+    </div>
+    <div class="content">
+        <div style="font-size:0.75rem;color:#9c7a5a;letter-spacing:4px;text-transform:uppercase;margin-bottom:0.5rem;" class="reveal">1600 – 1675 · Флоренція · Медічі</div>
+        <h2 style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.8rem,3.5vw,2.8rem);color:#C9A84C;margin-bottom:0.3rem;" class="reveal">Джироламо Фантіні</h2>
+        <div style="font-size:0.9rem;color:#E8D5A0;letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;" class="reveal">Monarcha delle Trombe — «Монарх Труб»</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:0.5rem;">
+            <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);border-radius:12px;padding:1.2rem;" class="reveal">
+                <div style="font-size:1.8rem;color:#C9A84C;font-weight:700;font-family:'DM Serif Display',serif;" class="stat-glow">1638</div>
+                <div style="font-size:0.8rem;color:#9c7a5a;margin-top:0.3rem;text-transform:uppercase;letter-spacing:1px;">Рік публікації</div>
+                <div style="font-size:0.85rem;color:#d4b896;margin-top:0.5rem;">«Modo per imparare» — перший метод соло-гри на трубі з нотацією</div>
+            </div>
+            <div style="background:rgba(139,26,26,0.08);border:1px solid rgba(139,26,26,0.2);border-radius:12px;padding:1.2rem;" class="reveal">
+                <div style="font-size:1.8rem;color:#E8D5A0;font-weight:700;font-family:'DM Serif Display',serif;">8</div>
+                <div style="font-size:0.8rem;color:#9c7a5a;margin-top:0.3rem;text-transform:uppercase;letter-spacing:1px;">Сонат</div>
+                <div style="font-size:0.85rem;color:#d4b896;margin-top:0.5rem;">Перші сонати для труби і органу в музичній історії</div>
+            </div>
+            <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);border-radius:12px;padding:1.2rem;" class="reveal">
+                <div style="font-size:1.8rem;color:#C9A84C;font-weight:700;font-family:'DM Serif Display',serif;">🎵</div>
+                <div style="font-size:0.8rem;color:#9c7a5a;margin-top:0.3rem;text-transform:uppercase;letter-spacing:1px;">Спадщина</div>
+                <div style="font-size:0.85rem;color:#d4b896;margin-top:0.5rem;">Придворний трубач Медічі у Флоренції — перший virtuoso солістичної труби</div>
+            </div>
+        </div>
+        <div style="margin-top:1rem;background:rgba(201,168,76,0.05);border-left:3px solid #C9A84C;border-radius:0 8px 8px 0;padding:0.8rem 1rem;" class="reveal">
+            <p style="font-size:0.9rem;color:#d4b896;font-style:italic;margin:0;">«Fantini довів, що труба може звучати lirico та espressivo, не лише як сигнальний інструмент — це революція 1638 року.»</p>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 5: ANTON HAMPEL – hand stopping -->
+<div class="slide slide-5" data-slide="5">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:360px;height:360px;top:-80px;left:-60px;background:#C9A84C;opacity:0.09;"></div>
+        <div class="blob" style="width:260px;height:260px;bottom:-60px;right:-50px;background:#8B1A1A;opacity:0.09;"></div>
+    </div>
+    <div class="content">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;">
+            <div>
+                <div style="font-size:0.75rem;color:#9c7a5a;letter-spacing:4px;text-transform:uppercase;margin-bottom:0.5rem;" class="reveal">1710 – 1771 · Дрезден</div>
+                <h2 style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.8rem,3.5vw,2.8rem);color:#C9A84C;margin-bottom:0.3rem;" class="reveal">Антон Гампель</h2>
+                <div style="font-size:0.9rem;color:#E8D5A0;letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;" class="reveal">Батько техніки Штопфтону</div>
+                <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;">
+                    <li style="display:flex;gap:10px;font-size:0.9rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>~1750 р. — відкрив техніку «hand-stopping»: рука у розтрубі змінює висоту звуку натуральної валторни</span></li>
+                    <li style="display:flex;gap:10px;font-size:0.9rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>Це дозволило валторні грати хроматичний звукоряд задовго до винаходу вентилів (1818)</span></li>
+                    <li style="display:flex;gap:10px;font-size:0.9rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>Першим замовив crook-систему для легкої зміни тональності під час гри</span></li>
+                    <li style="display:flex;gap:10px;font-size:0.9rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>Навчив Йозефа Лейтгеба та Джованні Пунто — двох найбільших валторністів XVIII ст.</span></li>
+                </ul>
+            </div>
+            <div class="reveal" style="text-align:center;">
+                <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);border-radius:16px;padding:1.5rem;">
+                    <div style="font-size:3rem;margin-bottom:0.5rem;">✋🎺</div>
+                    <div style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:#C9A84C;margin-bottom:0.8rem;">Принцип штопфтону</div>
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.82rem;">
+                            <span style="color:#9c7a5a;">Рука закрита →</span>
+                            <span style="color:#E8D5A0;">звук ↓ на півтон</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.82rem;">
+                            <span style="color:#9c7a5a;">Рука відкрита →</span>
+                            <span style="color:#E8D5A0;">натуральний унтертон</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.82rem;">
+                            <span style="color:#9c7a5a;">Повний хром. ряд →</span>
+                            <span style="color:#C9A84C;font-weight:600;">без вентилів!</span>
+                        </div>
+                    </div>
+                    <div style="margin-top:1rem;font-size:0.75rem;color:#6b4a2a;font-style:italic;">~70 років до патенту Блюмеля</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 6: JOSEPH LEUTGEB + MOZART -->
+<div class="slide slide-6" data-slide="6">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:350px;height:350px;top:-70px;right:-50px;background:#8B1A1A;opacity:0.10;"></div>
+        <div class="blob" style="width:280px;height:280px;bottom:-60px;left:-40px;background:#C9A84C;opacity:0.07;"></div>
+    </div>
+    <div class="content">
+        <div style="font-size:0.75rem;color:#9c7a5a;letter-spacing:4px;text-transform:uppercase;margin-bottom:0.5rem;" class="reveal">1732 – 1811 · Зальцбург → Відень</div>
+        <h2 style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.8rem,3.5vw,2.6rem);color:#C9A84C;margin-bottom:0.3rem;" class="reveal">Йозеф Лейтгеб</h2>
+        <div style="font-size:0.9rem;color:#E8D5A0;letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;" class="reveal">Муза Моцарта для валторни</div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+            <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;">
+                <li style="display:flex;gap:10px;font-size:0.9rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>Моцарт написав для нього <strong style="color:#E8D5A0;">4 концерти для валторни</strong> — KV 412, 417, 447, 495 (1781–1791)</span></li>
+                <li style="display:flex;gap:10px;font-size:0.9rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>В автографі KV 417 Моцарт написав: «для Лейтгеба — осла, ox і дурника» — дружній жарт великих друзів</span></li>
+                <li style="display:flex;gap:10px;font-size:0.9rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>Учень Антона Гампеля — довів штопфтон-техніку до рівня концертного мистецтва</span></li>
+                <li style="display:flex;gap:10px;font-size:0.9rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>Власник сирної крамниці у Відні — поєднував торгівлю з карʼєрою найбільшого валторніста епохи</span></li>
+            </ul>
+            <div class="reveal" style="text-align:center;">
+                <div style="background:rgba(139,26,26,0.1);border:1px solid rgba(139,26,26,0.25);border-radius:12px;padding:1.2rem;">
+                    <div style="font-size:2.5rem;font-weight:700;color:#C9A84C;font-family:'DM Serif Display',serif;" class="stat-glow">4</div>
+                    <div style="font-size:0.75rem;color:#9c7a5a;text-transform:uppercase;letter-spacing:1px;">Концерти Моцарта</div>
+                    <div style="margin-top:0.8rem;font-size:0.8rem;color:#d4b896;">KV 412 · 417<br>447 · 495</div>
+                    <div style="margin-top:0.8rem;font-size:0.7rem;color:#6b4a2a;font-style:italic;">1781–1791</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 7: GIOVANNI PUNTO -->
+<div class="slide slide-7" data-slide="7">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:400px;height:400px;top:-90px;right:-70px;background:#C9A84C;opacity:0.09;"></div>
+        <div class="blob" style="width:260px;height:260px;bottom:-60px;left:-50px;background:#8B1A1A;opacity:0.09;"></div>
+    </div>
+    <div class="content">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:center;">
+            <div>
+                <div style="font-size:0.75rem;color:#9c7a5a;letter-spacing:4px;text-transform:uppercase;margin-bottom:0.5rem;" class="reveal">1746 – 1803 · Богемія → Париж → Відень</div>
+                <h2 style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.8rem,3.5vw,2.6rem);color:#C9A84C;margin-bottom:0.3rem;" class="reveal">Джованні Пунто</h2>
+                <div style="font-size:0.85rem;color:#E8D5A0;letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;" class="reveal">Jan Václav Stich · Супертехніст натуральної валторни</div>
+                <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px;">
+                    <li style="display:flex;gap:10px;font-size:0.88rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>Втік від свого пана-поміщика та став найвидатнішим валторністом Європи</span></li>
+                    <li style="display:flex;gap:10px;font-size:0.88rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>1800 р. — Бетховен написав і виконав разом з ним Сонату op. 17 — спеціально для Пунто</span></li>
+                    <li style="display:flex;gap:10px;font-size:0.88rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>Написав <strong style="color:#E8D5A0;">11 концертів</strong> і метод гри для натуральної валторни</span></li>
+                    <li style="display:flex;gap:10px;font-size:0.88rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>Міг виконувати мультифоніки та обертони — техніка, що вважалася неможливою</span></li>
+                </ul>
+            </div>
+            <div class="reveal">
+                <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);border-radius:14px;padding:1.4rem;text-align:center;">
+                    <div style="font-size:2rem;margin-bottom:0.6rem;">🎼</div>
+                    <div style="font-family:'DM Serif Display',serif;font-size:0.95rem;color:#E8D5A0;margin-bottom:0.8rem;">Бетховен — Соната для валторни op. 17</div>
+                    <div style="font-size:0.8rem;color:#9c7a5a;font-style:italic;line-height:1.5;">«Написана за одну ніч після концерту з Пунто — у 1800 році»</div>
+                    <div style="margin-top:1rem;display:flex;justify-content:center;gap:16px;">
+                        <div style="text-align:center;">
+                            <div style="font-size:1.5rem;color:#C9A84C;font-weight:700;">11</div>
+                            <div style="font-size:0.7rem;color:#9c7a5a;">концертів</div>
+                        </div>
+                        <div style="width:1px;background:rgba(201,168,76,0.2);"></div>
+                        <div style="text-align:center;">
+                            <div style="font-size:1.5rem;color:#E8D5A0;font-weight:700;">1800</div>
+                            <div style="font-size:0.7rem;color:#9c7a5a;">зустріч з Бетх.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 8: ALTENBURG – timpani & trumpet -->
+<div class="slide slide-8" data-slide="8">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:380px;height:380px;top:-80px;right:-60px;background:#8B1A1A;opacity:0.10;"></div>
+        <div class="blob" style="width:260px;height:260px;bottom:-60px;left:-40px;background:#C9A84C;opacity:0.07;"></div>
+    </div>
+    <div class="content">
+        <div style="font-size:0.75rem;color:#9c7a5a;letter-spacing:4px;text-transform:uppercase;margin-bottom:0.5rem;" class="reveal">1734 – 1801 · Weissenfels · Спадщина трактатиста</div>
+        <h2 style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.8rem,3.5vw,2.6rem);color:#C9A84C;margin-bottom:0.3rem;" class="reveal">Йоганн Ернст Альтенбург</h2>
+        <div style="font-size:0.9rem;color:#E8D5A0;letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;" class="reveal">Перший теоретик мистецтва труби і литавр</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);border-radius:12px;padding:1.2rem;" class="reveal">
+                <div style="font-size:1.5rem;margin-bottom:0.4rem;">📚</div>
+                <div style="font-family:'DM Serif Display',serif;color:#C9A84C;margin-bottom:0.4rem;">Versuch (1795)</div>
+                <div style="font-size:0.84rem;color:#d4b896;">«Спроба настанови до героїчно-музичного мистецтва трубачів і литавристів» (<em lang="de">Versuch einer Anleitung zur heroisch-musikalischen Trompeter- und Pauker-Kunst</em>) — єдиний систематичний трактат XVIII ст. про трубу та литаври</div>
+            </div>
+            <div style="background:rgba(139,26,26,0.08);border:1px solid rgba(139,26,26,0.2);border-radius:12px;padding:1.2rem;" class="reveal">
+                <div style="font-size:1.5rem;margin-bottom:0.4rem;">🥁</div>
+                <div style="font-family:'DM Serif Display',serif;color:#E8D5A0;margin-bottom:0.4rem;">Литаварне мистецтво</div>
+                <div style="font-size:0.84rem;color:#d4b896;">Перший опис позиції рук, способів натягу мембрани та розміщення литавр в оркестрі — вплив до Берліоза</div>
+            </div>
+            <div style="background:rgba(139,26,26,0.08);border:1px solid rgba(139,26,26,0.2);border-radius:12px;padding:1.2rem;" class="reveal">
+                <div style="font-size:1.5rem;margin-bottom:0.4rem;">🏆</div>
+                <div style="font-family:'DM Serif Display',serif;color:#E8D5A0;margin-bottom:0.4rem;">Гільдійська традиція</div>
+                <div style="font-size:0.84rem;color:#d4b896;">Задокументував систему цехів трубачів і литаварників — закриті гільдії з 1623 року при дворах Священної Римської Імперії</div>
+            </div>
+            <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);border-radius:12px;padding:1.2rem;" class="reveal">
+                <div style="font-size:1.5rem;margin-bottom:0.4rem;">⚔️</div>
+                <div style="font-family:'DM Serif Display',serif;color:#C9A84C;margin-bottom:0.4rem;">Військовий контекст</div>
+                <div style="font-size:0.84rem;color:#d4b896;">Труба — суто привілейований інструмент: лише дворяни та дипломовані гільдійці мали право її грати до 1810-х рр.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 9: BLÜHMEL & STÖLZEL – valve patent 1818 -->
+<div class="slide slide-9" data-slide="9">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:360px;height:360px;top:-80px;left:-60px;background:#C9A84C;opacity:0.09;"></div>
+        <div class="blob" style="width:280px;height:280px;bottom:-70px;right:-50px;background:#8B1A1A;opacity:0.09;"></div>
+    </div>
+    <div class="content" style="text-align:center;">
+        <div style="font-size:0.75rem;color:#9c7a5a;letter-spacing:4px;text-transform:uppercase;margin-bottom:0.5rem;" class="reveal">6 квітня 1818 · Пруссія · Революція духових</div>
+        <h2 style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.8rem,3.5vw,2.6rem);color:#C9A84C;margin-bottom:0.3rem;" class="reveal">Патент на Вентилі</h2>
+        <div style="font-size:0.9rem;color:#E8D5A0;letter-spacing:2px;text-transform:uppercase;margin-bottom:1.2rem;" class="reveal">Блюмель & Штельцель — найважливіший день для мідних</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;text-align:left;">
+            <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);border-radius:12px;padding:1.2rem;" class="reveal">
+                <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:#C9A84C;font-weight:700;" class="stat-glow">1818</div>
+                <div style="font-size:0.75rem;color:#9c7a5a;text-transform:uppercase;letter-spacing:1px;">Рік патенту</div>
+                <div style="font-size:0.84rem;color:#d4b896;margin-top:0.5rem;">Фрідріх Блюмель і Гайнріх Штельцель отримали 10-річний патент від прусського короля Фрідріха Вільгельма III</div>
+            </div>
+            <div style="background:rgba(139,26,26,0.08);border:1px solid rgba(139,26,26,0.2);border-radius:12px;padding:1.2rem;" class="reveal">
+                <div style="font-size:1.8rem;color:#E8D5A0;margin-bottom:0.3rem;">⚙️</div>
+                <div style="font-family:'DM Serif Display',serif;font-size:1rem;color:#E8D5A0;">Трубчастий вентиль</div>
+                <div style="font-size:0.84rem;color:#d4b896;margin-top:0.5rem;">Перший у світі пружинний клапан з обертальним рухом — відразу адаптований для валторни та труби</div>
+            </div>
+            <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);border-radius:12px;padding:1.2rem;" class="reveal">
+                <div style="font-size:1.8rem;color:#C9A84C;margin-bottom:0.3rem;">🔊</div>
+                <div style="font-family:'DM Serif Display',serif;font-size:1rem;color:#C9A84C;">Наслідки</div>
+                <div style="font-size:0.84rem;color:#d4b896;margin-top:0.5rem;">Через 20 років: усі мідні в оркестрі мають вентилі. Через 30 років: Вагнер пише для повного хроматичного мідного ансамблю</div>
+            </div>
+        </div>
+        <div style="margin-top:1rem;font-size:0.82rem;color:#9c7a5a;font-style:italic;" class="reveal">Технічний перелом, порівнянний з появою фортепіано замість клавесину</div>
+    </div>
+</div>
+
+<!-- SLIDE 10: THEOBALD BOEHM -->
+<div class="slide slide-10" data-slide="10">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:380px;height:380px;top:-80px;right:-60px;background:#8B1A1A;opacity:0.10;"></div>
+        <div class="blob" style="width:250px;height:250px;bottom:-50px;left:-40px;background:#C9A84C;opacity:0.08;"></div>
+    </div>
+    <div class="content">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:center;">
+            <div>
+                <div style="font-size:0.75rem;color:#9c7a5a;letter-spacing:4px;text-transform:uppercase;margin-bottom:0.5rem;" class="reveal">1794 – 1881 · Мюнхен</div>
+                <h2 style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.8rem,3.5vw,2.6rem);color:#C9A84C;margin-bottom:0.3rem;" class="reveal">Теобальд Бем</h2>
+                <div style="font-size:0.9rem;color:#E8D5A0;letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;" class="reveal">Інженер-революціонер флейти</div>
+                <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px;">
+                    <li style="display:flex;gap:10px;font-size:0.88rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>1832 р. — перша «Бемівська» флейта з кільцевими клапанами: стандарт до сьогодні</span></li>
+                    <li style="display:flex;gap:10px;font-size:0.88rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>1847 р. — патент металевої флейти з циліндричним бором — більший обсяг та проекція</span></li>
+                    <li style="display:flex;gap:10px;font-size:0.88rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>Система Бема адаптована для кларнета у 1840-х — використовується майже скрізь дотепер</span></li>
+                    <li style="display:flex;gap:10px;font-size:0.88rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>Заснував акустичну науку про деревʼяні духові — праця «Флейта і гра на флейті» (<em lang="de">Die Flöte und das Flötenspiel</em>, 1871)</span></li>
+                </ul>
+            </div>
+            <div class="reveal">
+                <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);border-radius:14px;padding:1.5rem;text-align:center;">
+                    <div style="font-size:3rem;margin-bottom:0.5rem;">🎶</div>
+                    <div style="font-family:'DM Serif Display',serif;color:#C9A84C;margin-bottom:1rem;">Спадщина системи Бема</div>
+                    <div style="display:flex;flex-direction:column;gap:8px;text-align:left;">
+                        <div style="display:flex;justify-content:space-between;font-size:0.82rem;">
+                            <span style="color:#9c7a5a;">Флейта Бема:</span><span style="color:#E8D5A0;">1832 → сьогодні</span>
+                        </div>
+                        <div style="height:1px;background:rgba(201,168,76,0.15);"></div>
+                        <div style="display:flex;justify-content:space-between;font-size:0.82rem;">
+                            <span style="color:#9c7a5a;">Кларнет Бема:</span><span style="color:#E8D5A0;">1840-і → сьогодні</span>
+                        </div>
+                        <div style="height:1px;background:rgba(201,168,76,0.15);"></div>
+                        <div style="display:flex;justify-content:space-between;font-size:0.82rem;">
+                            <span style="color:#9c7a5a;">Гобой (адаптація):</span><span style="color:#E8D5A0;">консерваторії XIX ст.</span>
+                        </div>
+                    </div>
+                    <div style="margin-top:1rem;font-size:0.75rem;color:#6b4a2a;font-style:italic;">~195 років у використанні</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 11: ANTONÍN REICHA – wind quintet -->
+<div class="slide slide-11" data-slide="11">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:360px;height:360px;top:-80px;left:-60px;background:#C9A84C;opacity:0.09;"></div>
+        <div class="blob" style="width:260px;height:260px;bottom:-60px;right:-50px;background:#8B1A1A;opacity:0.09;"></div>
+    </div>
+    <div class="content">
+        <div style="font-size:0.75rem;color:#9c7a5a;letter-spacing:4px;text-transform:uppercase;margin-bottom:0.5rem;" class="reveal">1770 – 1836 · Прага → Париж · Засновник жанру</div>
+        <h2 style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.8rem,3.5vw,2.6rem);color:#C9A84C;margin-bottom:0.3rem;" class="reveal">Антонін Рейха</h2>
+        <div style="font-size:0.9rem;color:#E8D5A0;letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;" class="reveal">Батько Духового Квінтету</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+            <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);border-radius:12px;padding:1.2rem;" class="reveal">
+                <div style="font-family:'DM Serif Display',serif;font-size:1.8rem;color:#C9A84C;" class="stat-glow">24</div>
+                <div style="font-size:0.75rem;color:#9c7a5a;text-transform:uppercase;letter-spacing:1px;">Квінтети</div>
+                <div style="font-size:0.83rem;color:#d4b896;margin-top:0.5rem;">Написав 24 духових квінтети — визначив склад: флейта, гобой, кларнет, фагот, валторна</div>
+            </div>
+            <div style="background:rgba(139,26,26,0.08);border:1px solid rgba(139,26,26,0.2);border-radius:12px;padding:1.2rem;" class="reveal">
+                <div style="font-size:1.5rem;margin-bottom:0.3rem;">🎓</div>
+                <div style="font-family:'DM Serif Display',serif;color:#E8D5A0;">Паризька консерваторія</div>
+                <div style="font-size:0.83rem;color:#d4b896;margin-top:0.5rem;">Викладав з 1818 р. — серед учнів Берліоз, Гуно, Франк, Ліст</div>
+            </div>
+            <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);border-radius:12px;padding:1.2rem;" class="reveal">
+                <div style="font-size:1.5rem;margin-bottom:0.3rem;">🔬</div>
+                <div style="font-family:'DM Serif Display',serif;color:#C9A84C;">Теоретик</div>
+                <div style="font-size:0.83rem;color:#d4b896;margin-top:0.5rem;">«Traité de haute composition» (1826) — фундаментальна праця з поліфонії та форми</div>
+            </div>
+        </div>
+        <div style="margin-top:1rem;background:rgba(201,168,76,0.05);border-left:3px solid #C9A84C;border-radius:0 8px 8px 0;padding:0.8rem 1rem;" class="reveal">
+            <p style="font-size:0.88rem;color:#d4b896;margin:0;">До Рейхи духові ансамблі були лише розважальною музикою. Він підняв квінтет до рівня серйозного камерного жанру, де кожен інструмент — рівноправний голос.</p>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 12: WIEPRECHT – tuba and military bands -->
+<div class="slide slide-12" data-slide="12">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:380px;height:380px;top:-80px;right:-60px;background:#8B1A1A;opacity:0.10;"></div>
+        <div class="blob" style="width:260px;height:260px;bottom:-60px;left:-40px;background:#C9A84C;opacity:0.07;"></div>
+    </div>
+    <div class="content">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:center;">
+            <div>
+                <div style="font-size:0.75rem;color:#9c7a5a;letter-spacing:4px;text-transform:uppercase;margin-bottom:0.5rem;" class="reveal">1802 – 1872 · Берлін · Пруссія</div>
+                <h2 style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.8rem,3.5vw,2.6rem);color:#C9A84C;margin-bottom:0.3rem;" class="reveal">Вільгельм Вірехт</h2>
+                <div style="font-size:0.9rem;color:#E8D5A0;letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;" class="reveal">Батько Туби та Реформатор Духових</div>
+                <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px;">
+                    <li style="display:flex;gap:10px;font-size:0.88rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>1835 р. — разом з Йоганном Морітцем запатентував <strong style="color:#E8D5A0;">тубу</strong> — перший реальний бас-інструмент для оркестру</span></li>
+                    <li style="display:flex;gap:10px;font-size:0.88rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>Реформував 14 полкових оркестрів прусської армії — стандартизував склад і нотацію</span></li>
+                    <li style="display:flex;gap:10px;font-size:0.88rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>1838 р. — організував «Битву оркестрів» у Берліні: 16 оркестрів (1200 музикантів) vs. Адольфа Сакса</span></li>
+                    <li style="display:flex;gap:10px;font-size:0.88rem;color:#d4b896;" class="reveal"><span style="color:#C9A84C;">▸</span><span>Туба Вірехта замінила офіклейд у партитурах — Вагнер включив її у «Кільце нібелунга» (1853–1874)</span></li>
+                </ul>
+            </div>
+            <div class="reveal" style="text-align:center;">
+                <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);border-radius:14px;padding:1.5rem;">
+                    <div style="font-size:3rem;margin-bottom:0.5rem;">🎺</div>
+                    <div style="font-family:'DM Serif Display',serif;color:#C9A84C;font-size:1.1rem;margin-bottom:1rem;">Туба, 1835</div>
+                    <div style="font-size:0.82rem;color:#d4b896;text-align:left;line-height:1.6;">Перший басовий мідний духовий, розроблений спеціально для симфонічного оркестру і військових ансамблів з повним хроматичним рядом.</div>
+                    <div style="margin-top:1rem;display:flex;justify-content:space-around;">
+                        <div style="text-align:center;"><div style="font-size:1.4rem;color:#C9A84C;font-weight:700;">14</div><div style="font-size:0.7rem;color:#9c7a5a;">оркестрів</div></div>
+                        <div style="width:1px;background:rgba(201,168,76,0.2);"></div>
+                        <div style="text-align:center;"><div style="font-size:1.4rem;color:#E8D5A0;font-weight:700;">1835</div><div style="font-size:0.7rem;color:#9c7a5a;">патент туби</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 13: ADOLPHE SAX -->
+<div class="slide slide-13" data-slide="13">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:400px;height:400px;top:-100px;left:-60px;background:#C9A84C;opacity:0.10;"></div>
+        <div class="blob" style="width:280px;height:280px;bottom:-70px;right:-50px;background:#8B1A1A;opacity:0.10;"></div>
+    </div>
+    <div class="content">
+        <div style="font-size:0.75rem;color:#9c7a5a;letter-spacing:4px;text-transform:uppercase;margin-bottom:0.5rem;" class="reveal">1814 – 1894 · Брюссель → Париж</div>
+        <h2 style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.8rem,3.5vw,2.6rem);color:#C9A84C;margin-bottom:0.3rem;" class="reveal">Адольф Сакс</h2>
+        <div style="font-size:0.9rem;color:#E8D5A0;letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;" class="reveal">Найплідніший винахідник духових інструментів</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+            <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);border-radius:12px;padding:1.1rem;" class="reveal">
+                <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:#C9A84C;" class="stat-glow">1846</div>
+                <div style="font-size:0.75rem;color:#9c7a5a;text-transform:uppercase;letter-spacing:1px;">Саксофон</div>
+                <div style="font-size:0.82rem;color:#d4b896;margin-top:0.4rem;">Патент №3226 — унікальний гібрид мундштука мідних з тілом дерев'яних</div>
+            </div>
+            <div style="background:rgba(139,26,26,0.08);border:1px solid rgba(139,26,26,0.2);border-radius:12px;padding:1.1rem;" class="reveal">
+                <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:#E8D5A0;">7</div>
+                <div style="font-size:0.75rem;color:#9c7a5a;text-transform:uppercase;letter-spacing:1px;">Розміри Сакс.</div>
+                <div style="font-size:0.82rem;color:#d4b896;margin-top:0.4rem;">сопраніно, сопрано, альт, тенор, баритон, бас, контрабас</div>
+            </div>
+            <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);border-radius:12px;padding:1.1rem;" class="reveal">
+                <div style="font-size:1.4rem;margin-bottom:0.3rem;">🎺</div>
+                <div style="font-family:'DM Serif Display',serif;color:#C9A84C;font-size:0.95rem;">Саксгорн, 1845</div>
+                <div style="font-size:0.82rem;color:#d4b896;margin-top:0.4rem;">Сімейство з 7 інструментів — база сучасних маршових оркестрів</div>
+            </div>
+        </div>
+        <div style="margin-top:0.8rem;background:rgba(139,26,26,0.07);border-left:3px solid #8B1A1A;border-radius:0 8px 8px 0;padding:0.8rem 1rem;" class="reveal">
+            <p style="font-size:0.87rem;color:#d4b896;margin:0;">Сакс подавав судові позови 34 рази — конкуренти копіювали його патенти. Попри це, він двічі збанкрутів, але залишив 14 запатентованих інструментів та змінив звучання сучасної музики назавжди.</p>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 14: TIMPANI HISTORY -->
+<div class="slide slide-14" data-slide="14">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:380px;height:380px;top:-80px;right:-60px;background:#8B1A1A;opacity:0.10;"></div>
+        <div class="blob" style="width:250px;height:250px;bottom:-60px;left:-40px;background:#C9A84C;opacity:0.08;"></div>
+    </div>
+    <canvas class="particle-canvas-ambient" style="position:absolute;inset:0;z-index:1;"></canvas>
+    <div class="content">
+        <h2 style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.8rem,3.5vw,2.6rem);color:#C9A84C;margin-bottom:0.3rem;" class="reveal">Литаври: Від Поля Бою до Симфонії</h2>
+        <div style="font-size:0.9rem;color:#E8D5A0;letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;" class="reveal">Еволюція Ударного Серця Оркестру</div>
+        <div style="position:relative;padding-left:40px;">
+            <div class="timeline-line"></div>
+            <div style="display:flex;flex-direction:column;gap:14px;">
+                <div style="display:flex;gap:14px;align-items:flex-start;" class="reveal">
+                    <div class="timeline-dot"></div>
+                    <div><span style="font-size:0.8rem;color:#C9A84C;font-weight:600;">~1000–XIV ст.</span><span style="font-size:0.85rem;color:#d4b896;margin-left:8px;">Накери (арабські naqāra) — пара котлових барабанів з Персії та Єгипту, привезених хрестоносцями до Європи</span></div>
+                </div>
+                <div style="display:flex;gap:14px;align-items:flex-start;" class="reveal">
+                    <div class="timeline-dot"></div>
+                    <div><span style="font-size:0.8rem;color:#C9A84C;font-weight:600;">1623</span><span style="font-size:0.85rem;color:#d4b896;margin-left:8px;">Перший оркестровий запис литавр у «Ballet comique» Люллі — D і A на 2 інструментах</span></div>
+                </div>
+                <div style="display:flex;gap:14px;align-items:flex-start;" class="reveal">
+                    <div class="timeline-dot"></div>
+                    <div><span style="font-size:0.8rem;color:#C9A84C;font-weight:600;">1711–1727</span><span style="font-size:0.85rem;color:#d4b896;margin-left:8px;">Бах та Гендель — широке використання парних литавр у тріумфальних хорах і увертюрах</span></div>
+                </div>
+                <div style="display:flex;gap:14px;align-items:flex-start;" class="reveal">
+                    <div class="timeline-dot"></div>
+                    <div><span style="font-size:0.8rem;color:#C9A84C;font-weight:600;">1837</span><span style="font-size:0.85rem;color:#d4b896;margin-left:8px;">Берліоз — «Реквієм»: 8 пар литавр і 4 ансамблі духових — апогей романтичного пафосу</span></div>
+                </div>
+                <div style="display:flex;gap:14px;align-items:flex-start;" class="reveal">
+                    <div class="timeline-dot" style="background:#E8D5A0;box-shadow:0 0 10px rgba(232,213,160,0.6);"></div>
+                    <div><span style="font-size:0.8rem;color:#E8D5A0;font-weight:600;">1870-і</span><span style="font-size:0.85rem;color:#d4b896;margin-left:8px;">Педальний механізм — швидкий перелад без паузи; відкрив поліфонічні прийоми для солістів</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 15: LEGACY + CLOSING STATS -->
+<div class="slide slide-15" data-slide="15">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:500px;height:500px;top:-120px;right:-100px;background:#8B1A1A;opacity:0.18;"></div>
+        <div class="blob" style="width:350px;height:350px;bottom:-80px;left:-80px;background:#C9A84C;opacity:0.14;"></div>
+        <div class="blob" style="width:220px;height:220px;top:35%;left:20%;background:#6B3010;opacity:0.12;"></div>
+    </div>
+    <canvas class="particle-canvas" style="position:absolute;inset:0;z-index:1;"></canvas>
+    <div class="content text-center">
+        <div style="font-size:80px;margin-bottom:0.8rem;animation:float 3.5s ease-in-out infinite;" class="reveal">🏛️</div>
+        <h2 style="font-family:'DM Serif Display',Georgia,serif;font-size:clamp(1.8rem,4vw,3rem);background:linear-gradient(135deg,#C9A84C,#E8D5A0,#8B1A1A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.5rem;" class="reveal">Спадщина Вічна</h2>
+        <div class="ornament reveal"></div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:1.2rem;text-align:center;">
+            <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:1rem;" class="reveal">
+                <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:#C9A84C;" class="stat-glow" data-count="9">0</div>
+                <div style="font-size:0.7rem;color:#9c7a5a;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Персон</div>
+            </div>
+            <div style="background:rgba(139,26,26,0.1);border:1px solid rgba(139,26,26,0.2);border-radius:12px;padding:1rem;" class="reveal">
+                <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:#E8D5A0;" class="stat-glow" data-count="14">0</div>
+                <div style="font-size:0.7rem;color:#9c7a5a;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Патентів</div>
+            </div>
+            <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:1rem;" class="reveal">
+                <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:#C9A84C;" class="stat-glow" data-count="280">0</div>
+                <div style="font-size:0.7rem;color:#9c7a5a;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Років змін</div>
+            </div>
+            <div style="background:rgba(139,26,26,0.1);border:1px solid rgba(139,26,26,0.2);border-radius:12px;padding:1rem;" class="reveal">
+                <div style="font-family:'DM Serif Display',serif;font-size:clamp(1rem,2.2vw,1.35rem);color:#E8D5A0;line-height:1.25;">Моцартівський валторновий канон</div>
+                <div style="font-size:0.68rem;color:#9c7a5a;text-transform:none;letter-spacing:0;line-height:1.45;margin-top:8px;">Твори для Йозефа Лейтгеба закріпили валторну як повноцінний сольний інструмент класичної доби</div>
+            </div>
+        </div>
+        <p style="font-size:0.88rem;color:#9c7a5a;margin-top:1.2rem;font-style:italic;" class="reveal">Від Бенделлі (1614) до Сакса (1894) — три століття, які сформували сучасний симфонічний оркестр</p>
+    </div>
+</div>
+
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav-controls">
+    <button class="nav-btn" onclick="changeSlide(-1)">&#8249;</button>
+    <div class="slide-dots" id="dots"></div>
+    <button class="nav-btn" onclick="changeSlide(1)">&#8250;</button>
+    <span class="slide-counter" id="counter">1 / 15</span>
+</div>
+
+<script>
+    let current = 1;
+    const total = document.querySelectorAll('.slide').length;
+    const dotsContainer = document.getElementById('dots');
+    const counter = document.getElementById('counter');
+    for (let i = 1; i <= total; i++) { const dot = document.createElement('div'); dot.className = 'dot' + (i===1?' active':''); dot.onclick = () => goToSlide(i); dotsContainer.appendChild(dot); }
+    function goToSlide(n) {
+        const prev = document.querySelector('.slide.active');
+        const next = document.querySelector(`.slide[data-slide="${n}"]`);
+        if (prev) prev.classList.remove('active');
+        if (next) { next.classList.add('active'); animateSlide(next); }
+        current = n; updateNav();
+    }
+    function changeSlide(dir) { let n = current + dir; if(n<1) n=total; if(n>total) n=1; goToSlide(n); }
+    function updateNav() { document.querySelectorAll('.dot').forEach((d,i)=>{ d.classList.toggle('active', i+1===current); }); counter.textContent = current + ' / ' + total; }
+    document.addEventListener('keydown', e=>{ if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); changeSlide(1); } if(e.key==='ArrowLeft'){ e.preventDefault(); changeSlide(-1); } });
+    let tx=0;
+    document.addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; });
+    document.addEventListener('touchend', e=>{ const d=tx-e.changedTouches[0].clientX; if(Math.abs(d)>50) changeSlide(d>0?1:-1); });
+
+    function animateSlide(slide) {
+        slide.querySelectorAll('.reveal').forEach((el,i)=>{
+            el.style.transition='none'; el.style.opacity='0'; el.style.transform='translateY(20px)'; el.offsetHeight;
+            const delay=i*0.07;
+            el.style.transition=`opacity 0.35s ease ${delay}s, transform 0.35s ease ${delay}s`;
+            el.style.opacity='1'; el.style.transform='translateY(0px)';
+        });
+        animateSlideEffects(slide);
+    }
+    function animateSlideEffects(slide) {
+        slide.querySelectorAll('[data-count]:not(.counted)').forEach(el=>{
+            el.classList.add('counted');
+            const target=parseInt(el.dataset.count), suffix=el.dataset.suffix||'', prefix=el.dataset.prefix||'';
+            let cur=0; const step=target/40;
+            const t=setInterval(()=>{ cur+=step; if(cur>=target){cur=target;clearInterval(t);} el.textContent=prefix+Math.round(cur).toLocaleString()+suffix; },30);
+        });
+        slide.querySelectorAll('.bar-fill:not(.fill-init)').forEach((bar,i)=>{
+            bar.classList.add('fill-init');
+            bar.style.width='0%'; bar.style.transition=`width 0.6s ease ${i*0.1}s`; bar.offsetHeight; bar.style.width=bar.dataset.width+'%';
+        });
+    }
+
+    document.addEventListener('mousemove', e=>{
+        const s=document.querySelector('.mouse-spotlight');
+        if(s) s.style.background=`radial-gradient(600px circle at ${e.clientX}px ${e.clientY}px,rgba(201,168,76,0.06),transparent 40%)`;
+    });
+
+    (function(){
+        let mx=innerWidth/2, my=innerHeight/2;
+        const cx=innerWidth/2, cy=innerHeight/2;
+        document.addEventListener('mousemove', e=>{ mx=e.clientX; my=e.clientY; });
+        (function tick(){
+            const ox=(mx-cx)/cx, oy=(my-cy)/cy;
+            document.querySelectorAll('.deco-shape').forEach(s=>{ const sp=parseFloat(s.dataset.speed)||0.03; s.style.transform=`translate(${ox*sp*100}px,${oy*sp*100}px)`; });
+            requestAnimationFrame(tick);
+        })();
+    })();
+
+    window.initParticles = function(canvas, opts) {
+        if(!canvas) return;
+        const ctx=canvas.getContext('2d');
+        canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight;
+        const interactive=opts.interactive!==false, count=opts.count||(interactive?55:18);
+        let mx2=-1000, my2=-1000;
+        const r=201,g=168,b=76;
+        const ps=Array.from({length:count},()=>({ x:Math.random()*canvas.width, y:Math.random()*canvas.height, vx:(Math.random()-0.5)*0.3, vy:(Math.random()-0.5)*0.3, size:Math.random()*2.5+0.8, alpha:Math.random()*0.35+0.1 }));
+        if(interactive){ canvas.addEventListener('mousemove',e=>{ const rc=canvas.getBoundingClientRect(); mx2=e.clientX-rc.left; my2=e.clientY-rc.top; }); canvas.addEventListener('mouseleave',()=>{ mx2=-1000; my2=-1000; }); }
+        (function anim(){
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ps.forEach(p=>{ if(interactive){const dx=p.x-mx2,dy=p.y-my2,dist=Math.sqrt(dx*dx+dy*dy); if(dist<120){const f=(120-dist)/120*2; p.vx+=(dx/dist)*f*0.1; p.vy+=(dy/dist)*f*0.1;}} p.vx*=0.98; p.vy*=0.98; p.x+=p.vx; p.y+=p.vy; if(p.x<0)p.x=canvas.width; if(p.x>canvas.width)p.x=0; if(p.y<0)p.y=canvas.height; if(p.y>canvas.height)p.y=0; ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fillStyle=`rgba(${r},${g},${b},${p.alpha})`; ctx.fill(); });
+            requestAnimationFrame(anim);
+        })();
+    };
+    document.querySelectorAll('.particle-canvas').forEach(c=>window.initParticles(c,{interactive:true,count:55}));
+    document.querySelectorAll('.particle-canvas-ambient').forEach(c=>window.initParticles(c,{interactive:false,count:18}));
+
+    try { animateSlide(document.querySelector('.slide.active')); } catch(e) { console.warn(e); }
+</script>
+</body>
+</html>
