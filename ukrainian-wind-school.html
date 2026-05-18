@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="slides-format" content="viewport">
+    <title>Українська виконавська школа духових та ударних інструментів</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style type="text/tailwindcss">
+        @theme {
+            --color-bg: #0d1117;
+            --color-bg-deep: #060a0e;
+            --color-surface: #161c26;
+            --color-text: #eef2f7;
+            --color-text-secondary: #c9d4e0;
+            --color-text-muted: #7a90a8;
+            --color-accent-1: #C6A84B;
+            --color-accent-2: #3BBFA4;
+            --color-accent-3: #E05C6A;
+            --color-glass-bg: rgba(255,255,255,0.04);
+            --color-glass-border: rgba(255,255,255,0.07);
+            --color-vignette: rgba(0,0,0,0.5);
+            --font-display: 'Cormorant Garamond', serif;
+            --font-body: 'Manrope', sans-serif;
+        }
+    </style>
+
+    <style>
+        :root {
+            --color-bg: #0d1117;
+            --color-text: #eef2f7;
+            --glow-color-rgb: 198,168,75;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { background: var(--color-bg); margin: 0; }
+        body { font-family: 'Manrope', sans-serif; color: var(--color-text); overflow: hidden; height: 100vh; width: 100vw; }
+        .deck { width: 100vw; height: 100vh; position: relative; }
+        .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--color-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transform: scale(0.95); transition: opacity 0.7s ease, transform 0.7s ease; pointer-events: none; overflow: hidden; }
+        .slide.active { opacity: 1; transform: scale(1); pointer-events: all; }
+        .slide > .content { position: relative; z-index: 2; width: 100%; max-width: 1100px; padding: clamp(1.5rem, 4vw, 3.5rem); }
+        .nav-controls { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 16px; z-index: 100; background: rgba(198,168,75,0.07); backdrop-filter: blur(10px); padding: 10px 24px; border-radius: 40px; border: 1px solid rgba(198,168,75,0.15); }
+        .nav-btn { width: 38px; height: 38px; border: none; background: rgba(198,168,75,0.1); color: var(--color-accent-1); border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.3s; }
+        .nav-btn:hover { background: rgba(198,168,75,0.2); }
+        .slide-dots { display: flex; gap: 8px; }
+        .slide-dots .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(198,168,75,0.2); cursor: pointer; transition: background 0.3s, transform 0.3s; }
+        .slide-dots .dot.active { background: var(--color-accent-1); transform: scale(1.3); }
+        .slide-counter { font-size: 0.75rem; color: var(--color-text-muted); min-width: 40px; text-align: center; }
+        .reveal { opacity: 0; transform: translateY(20px); }
+
+        @keyframes glow-pulse {
+            0%, 100% { text-shadow: 0 0 20px rgba(198,168,75,0.5), 0 0 40px rgba(198,168,75,0.2); }
+            50% { text-shadow: 0 0 30px rgba(198,168,75,0.8), 0 0 60px rgba(198,168,75,0.3); }
+        }
+        .glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
+        @keyframes float-slow {
+            0% { transform: translate(0,0) scale(1); }
+            25% { transform: translate(60px,-50px) scale(1.12); }
+            50% { transform: translate(-40px,40px) scale(0.9); }
+            75% { transform: translate(50px,20px) scale(1.08); }
+            100% { transform: translate(0,0) scale(1); }
+        }
+        @keyframes float-drift {
+            0% { transform: translate(0,0) scale(1) rotate(0deg); }
+            33% { transform: translate(-50px,-60px) scale(1.15) rotate(3deg); }
+            66% { transform: translate(40px,30px) scale(0.88) rotate(-2deg); }
+            100% { transform: translate(0,0) scale(1) rotate(0deg); }
+        }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fade-in-up { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+
+        .gradient-mesh { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .blob { position: absolute; border-radius: 50%; filter: blur(90px); animation: float-slow 12s ease-in-out infinite; }
+        .blob:nth-child(2) { animation: float-drift 16s ease-in-out infinite; }
+        .blob:nth-child(3) { animation: float-slow 20s ease-in-out infinite reverse; }
+        .slide::before {
+            content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+            background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            background-repeat:repeat; background-size:256px; opacity:0.03; mix-blend-mode:overlay;
+        }
+        .slide::after {
+            content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+            background: radial-gradient(ellipse at center, transparent 50%, var(--color-vignette) 100%);
+        }
+
+        /* Title slide hero row */
+        .hero-icons { display:flex; align-items:center; justify-content:center; gap:1.8rem; margin-bottom:1.5rem; }
+        .hero-icon { font-size:clamp(2.5rem,6vw,4rem); animation:float 3.5s ease-in-out infinite; }
+        .hero-icon:nth-child(2) { animation-delay:-0.8s; font-size:clamp(3rem,7vw,5rem); }
+        .hero-icon:nth-child(3) { animation-delay:-1.6s; }
+        .hero-icon:nth-child(4) { animation-delay:-0.4s; }
+        .hero-icon:nth-child(5) { animation-delay:-1.2s; }
+
+        /* Decorative title ring */
+        .title-ring { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:420px; height:420px; border-radius:50%; border:1px solid rgba(198,168,75,0.06); pointer-events:none; z-index:0; }
+        .title-ring-2 { width:600px; height:600px; border-color:rgba(59,191,164,0.04); animation:spin-slow 40s linear infinite; }
+        .title-ring-3 { width:260px; height:260px; border-color:rgba(224,92,106,0.06); animation:spin-slow 28s linear infinite reverse; }
+
+        .instrument-card { transition:transform 0.3s, box-shadow 0.3s; }
+        .instrument-card:hover { transform:translateY(-4px); box-shadow:0 12px 40px rgba(198,168,75,0.12); }
+        .timeline-line { position:absolute; left:18px; top:0; bottom:0; width:2px; background:linear-gradient(to bottom, var(--color-accent-1), var(--color-accent-2)); }
+        .timeline-dot { width:14px; height:14px; border-radius:50%; background:var(--color-accent-1); box-shadow:0 0 10px rgba(198,168,75,0.6); flex-shrink:0; }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration:0.01ms !important; transition-duration:0.2s !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="mouse-spotlight" style="position:fixed;inset:0;z-index:99;pointer-events:none;"></div>
+
+<div class="deck">
+
+<!-- ===== SLIDE 1: TITLE ===== -->
+<div class="slide slide-1 active" data-slide="1">
+    <div class="title-ring"></div>
+    <div class="title-ring title-ring-2"></div>
+    <div class="title-ring title-ring-3"></div>
+    <div class="gradient-mesh">
+        <div class="blob" style="width:480px;height:480px;top:-140px;right:-80px;background:var(--color-accent-1);opacity:0.1;"></div>
+        <div class="blob" style="width:340px;height:340px;bottom:-90px;left:-80px;background:var(--color-accent-2);opacity:0.09;"></div>
+        <div class="blob" style="width:200px;height:200px;top:35%;left:5%;background:var(--color-accent-3);opacity:0.07;"></div>
+    </div>
+    <canvas class="particle-canvas" style="position:absolute;inset:0;z-index:1;"></canvas>
+    <div class="content text-center" style="position:relative;z-index:2;">
+        <div class="hero-icons reveal">
+            <span class="hero-icon" title="Сопілка">🪈</span>
+            <span class="hero-icon" title="Труба">🎺</span>
+            <span class="hero-icon" title="Барабан">🥁</span>
+            <span class="hero-icon" title="Флейта">🎶</span>
+            <span class="hero-icon" title="Валторна">📯</span>
+        </div>
+        <h1 class="font-display text-[clamp(2rem,5.2vw,4rem)] font-bold mb-3 reveal"
+            style="background:linear-gradient(135deg,#C6A84B 0%,#efe8c4 45%,#3BBFA4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.15;">
+            Українська виконавська школа<br>духових та ударних інструментів
+        </h1>
+        <p class="text-text-muted tracking-[5px] uppercase text-sm mb-6 reveal">Представники минулого та сучасності</p>
+        <div class="flex justify-center gap-6 reveal">
+            <div style="border-top:1px solid rgba(198,168,75,0.25);padding-top:0.8rem;min-width:110px;">
+                <p class="text-accent-1 text-xl font-bold">~1000</p>
+                <p class="text-text-muted text-xs">років традиції</p>
+            </div>
+            <div style="border-top:1px solid rgba(59,191,164,0.25);padding-top:0.8rem;min-width:110px;">
+                <p class="text-accent-2 text-xl font-bold">5+</p>
+                <p class="text-text-muted text-xs">регіональних шкіл</p>
+            </div>
+            <div style="border-top:1px solid rgba(224,92,106,0.25);padding-top:0.8rem;min-width:110px;">
+                <p class="text-accent-3 text-xl font-bold">1913</p>
+                <p class="text-text-muted text-xs">рік консерваторії</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SLIDE 2: AGENDA ===== -->
+<div class="slide slide-2" data-slide="2">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:360px;height:360px;top:-80px;right:-70px;background:var(--color-accent-2);opacity:0.08;"></div>
+        <div class="blob" style="width:260px;height:260px;bottom:-60px;left:-40px;background:var(--color-accent-1);opacity:0.07;"></div>
+    </div>
+    <div class="content">
+        <h2 class="font-display text-[clamp(1.8rem,4vw,2.8rem)] font-bold mb-6 reveal">Зміст презентації</h2>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-5 reveal instrument-card">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">🏛️</div>
+                <h4 class="font-semibold text-accent-1 mb-1">Народні корені</h4>
+                <p class="text-text-muted text-xs">Трембіта, сопілка, сурма. Понад 100 народних інструментів України.</p>
+            </div>
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-5 reveal instrument-card">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">🎓</div>
+                <h4 class="font-semibold text-accent-1 mb-1">Академічна традиція</h4>
+                <p class="text-text-muted text-xs">Консерваторія 1913 р. Лятошинський, Стеценко — засновники.</p>
+            </div>
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-5 reveal instrument-card">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">🎺</div>
+                <h4 class="font-semibold text-accent-1 mb-1">Духові: труба й тромбон</h4>
+                <p class="text-text-muted text-xs">Яблонський, Посвалюк, Ільків. Кларіно, барок, сучасний менстрім.</p>
+            </div>
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-5 reveal instrument-card">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">🥁</div>
+                <h4 class="font-semibold text-accent-1 mb-1">Ударні та дерев'яні духові</h4>
+                <p class="text-text-muted text-xs">Флейта, гобой, фагот, кларнет. Барабани. Окрема школа ударних в НМАУ.</p>
+            </div>
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-5 reveal instrument-card">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">🌍</div>
+                <h4 class="font-semibold text-accent-1 mb-1">Регіональні школи</h4>
+                <p class="text-text-muted text-xs">Київ, Одеса, Харків, Львів, Ужгород — п'ять осередків майстерності.</p>
+            </div>
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-5 reveal instrument-card">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">🌟</div>
+                <h4 class="font-semibold text-accent-1 mb-1">Унікальна постать</h4>
+                <p class="text-text-muted text-xs">Денніс Аду — феноменальна біографія та джаз.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SLIDE 3: FOLK ROOTS ===== -->
+<div class="slide slide-3" data-slide="3">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:420px;height:420px;top:-100px;left:-80px;background:var(--color-accent-2);opacity:0.09;"></div>
+        <div class="blob" style="width:280px;height:280px;bottom:-60px;right:-40px;background:var(--color-accent-1);opacity:0.07;"></div>
+    </div>
+    <canvas class="particle-canvas-ambient" style="position:absolute;inset:0;z-index:1;"></canvas>
+    <div class="content">
+        <p class="text-accent-2 uppercase tracking-[4px] text-xs mb-2 reveal">Розділ I • Народна традиція</p>
+        <h2 class="font-display text-[clamp(1.8rem,4vw,2.8rem)] font-bold mb-5 reveal">Народні духові інструменти</h2>
+        <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4 reveal instrument-card">
+                <div style="font-size:2.2rem;margin-bottom:0.5rem;">🏔️</div>
+                <h4 class="font-semibold text-accent-1 mb-2 text-sm">Трембіта</h4>
+                <p class="text-text-muted text-xs">Карпатський символ. Довжина 2,5–8 м. Береста. Сигнальна функція між гірськими селами. Занесена до нематеріальної спадщини ЮНЕСКО.</p>
+            </div>
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4 reveal instrument-card">
+                <div style="font-size:2.2rem;margin-bottom:0.5rem;">🪈</div>
+                <h4 class="font-semibold text-accent-1 mb-2 text-sm">Сопілка / Флояра</h4>
+                <p class="text-text-muted text-xs">Пастуша флейта Гуцульщини. До 1 м. Прообраз академічної флейти. Зараз — інструмент народних оркестрів і сольного репертуару.</p>
+            </div>
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4 reveal instrument-card">
+                <div style="font-size:2.2rem;margin-bottom:0.5rem;">⚔️</div>
+                <h4 class="font-semibold text-accent-1 mb-2 text-sm">Сурма / Козацький ріг</h4>
+                <p class="text-text-muted text-xs">Бойовий інструмент Запорізького козацтва. Прообраз труби та гобою. Козацькі капели мали штатних «сурмачів».</p>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4 reveal">
+                <h4 class="text-accent-2 font-semibold text-sm mb-1">🥁 Народні ударні</h4>
+                <p class="text-text-muted text-xs">Бубон, решето, тулумбас (козацький литавр), накри — формували ритмічну основу козацького строю. Литаври в Запорізькому Войську — символ гетьманської влади.</p>
+            </div>
+            <div class="bg-glass-bg backdrop-blur-xl border-l-4 border-accent-1 rounded-r-xl p-4 reveal">
+                <p class="text-text-secondary text-xs">Хнат Хоткевич (~1900 р.) описав понад <strong class="text-accent-1">100 різних інструментів</strong> українського народу. Микола Лисенко збирав народні пісні і досліджував зв'язок між народним та академічним інструменталізмом.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SLIDE 4: ACADEMIC SCHOOL FOUNDING ===== -->
+<div class="slide slide-4" data-slide="4">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:440px;height:440px;top:-90px;right:-90px;background:var(--color-accent-1);opacity:0.09;"></div>
+        <div class="blob" style="width:240px;height:240px;bottom:-50px;left:-30px;background:var(--color-accent-3);opacity:0.07;"></div>
+    </div>
+    <div class="content">
+        <p class="text-accent-2 uppercase tracking-[4px] text-xs mb-2 reveal">Розділ II • Академічна школа</p>
+        <h2 class="font-display text-[clamp(1.8rem,4vw,2.8rem)] font-bold mb-5 reveal">Становлення академічної традиції</h2>
+        <div class="grid grid-cols-2 gap-6">
+            <div class="reveal">
+                <h4 class="text-text-muted text-xs uppercase tracking-widest mb-3">Народний → Академічний</h4>
+                <div class="flex flex-col gap-2">
+                    <div class="flex items-center gap-3 bg-glass-bg backdrop-blur-xl border border-glass-border rounded-lg px-4 py-2">
+                        <span class="text-accent-3 font-semibold w-28 text-xs">Жалійка</span>
+                        <span class="text-text-muted text-xs">→</span>
+                        <span class="text-accent-1 font-semibold text-xs">Кларнет</span>
+                    </div>
+                    <div class="flex items-center gap-3 bg-glass-bg backdrop-blur-xl border border-glass-border rounded-lg px-4 py-2">
+                        <span class="text-accent-3 font-semibold w-28 text-xs">Сурма / дудка</span>
+                        <span class="text-text-muted text-xs">→</span>
+                        <span class="text-accent-1 font-semibold text-xs">Гобой / Фагот</span>
+                    </div>
+                    <div class="flex items-center gap-3 bg-glass-bg backdrop-blur-xl border border-glass-border rounded-lg px-4 py-2">
+                        <span class="text-accent-3 font-semibold w-28 text-xs">Сопілка / Флояра</span>
+                        <span class="text-text-muted text-xs">→</span>
+                        <span class="text-accent-1 font-semibold text-xs">Флейта</span>
+                    </div>
+                    <div class="flex items-center gap-3 bg-glass-bg backdrop-blur-xl border border-glass-border rounded-lg px-4 py-2">
+                        <span class="text-accent-3 font-semibold w-28 text-xs">Козацький ріг</span>
+                        <span class="text-text-muted text-xs">→</span>
+                        <span class="text-accent-1 font-semibold text-xs">Труба / Валторна</span>
+                    </div>
+                    <div class="flex items-center gap-3 bg-glass-bg backdrop-blur-xl border border-glass-border rounded-lg px-4 py-2">
+                        <span class="text-accent-3 font-semibold w-28 text-xs">Тулумбас / бубон</span>
+                        <span class="text-text-muted text-xs">→</span>
+                        <span class="text-accent-1 font-semibold text-xs">Литаври / ударні</span>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-5 reveal">
+                <h4 class="font-semibold text-accent-1 mb-3 text-sm">🎓 Київська консерваторія</h4>
+                <p class="text-text-secondary text-xs mb-2"><strong class="text-accent-1">1868</strong> — відкрите Київське музичне училище (засновник — Г. Нейгауз-старший).</p>
+                <p class="text-text-secondary text-xs mb-2"><strong class="text-accent-1">3 листопада 1913</strong> — реорганізоване у Консерваторію. Перший ректор — Р. М. Гліер.</p>
+                <p class="text-text-secondary text-xs mb-2"><strong class="text-accent-1">1944</strong> — відновлена після окупації як Київська державна консерваторія.</p>
+                <p class="text-text-secondary text-xs mb-2"><strong class="text-accent-1">1994</strong> — отримала статус Національної музичної академії (НМАУ ім. Чайковського).</p>
+                <p class="text-text-muted text-xs border-t border-glass-border pt-2 mt-2">Сьогодні — топ-400 у QS World University Rankings 2025 серед мистецьких вишів.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SLIDE 5: LYATOSHYNSKY ===== -->
+<div class="slide slide-5" data-slide="5">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:380px;height:380px;top:-70px;left:-60px;background:var(--color-accent-2);opacity:0.1;"></div>
+        <div class="blob" style="width:280px;height:280px;bottom:-60px;right:-40px;background:var(--color-accent-1);opacity:0.08;"></div>
+    </div>
+    <div class="content">
+        <p class="text-accent-2 uppercase tracking-[4px] text-xs mb-2 reveal">Видатна постать минулого • Композитор / педагог</p>
+        <div class="grid grid-cols-2 gap-7 items-start">
+            <div class="reveal">
+                <h2 class="font-display text-[clamp(1.6rem,3.5vw,2.5rem)] font-bold mb-1">Борис Лятошинський</h2>
+                <p class="text-accent-1 text-xs tracking-wide mb-3">1895, Житомир — 1968, Київ · Народний артист УРСР</p>
+                <p class="text-text-secondary text-xs mb-2">Засновник модерністського напрямку в українській музиці. Понад <strong class="text-accent-1">40 років</strong> (1920–1968) — викладач Київської консерваторії. Серед учнів — Леонтович, Сильвестров, Станкович.</p>
+                <p class="text-text-secondary text-xs mb-3">У <strong class="text-accent-1">1944</strong> р. написав <em class="text-accent-3">«Сюїту для квартету дерев'яних духових»</em> (op. 46) — одну з перших серйозних академічних п'єс для дерев'яних духових в Україні. Лауреат двох Сталінських премій (1946, 1952).</p>
+                <div class="bg-glass-bg backdrop-blur-xl border-l-4 border-accent-1 rounded-r-xl p-4">
+                    <p class="text-text-secondary text-xs italic">"Лятошинський сформував авторську школу, що органічно поєднала народні витоки з модерністичними пошуками."</p>
+                </div>
+            </div>
+            <div class="reveal">
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4 mb-3">
+                    <h4 class="font-semibold text-accent-1 mb-2 text-sm">Ключові твори для духових</h4>
+                    <ul class="flex flex-col gap-1 text-text-secondary text-xs">
+                        <li class="flex gap-2"><span class="text-accent-3">▸</span> Сюїта для дерев. квартету op. 46 (1944)</li>
+                        <li class="flex gap-2"><span class="text-accent-3">▸</span> Квінтет для струнних та духових</li>
+                        <li class="flex gap-2"><span class="text-accent-3">▸</span> Симфонія № 3 — складні духові партії</li>
+                        <li class="flex gap-2"><span class="text-accent-3">▸</span> «На берегах Вісли» (1958) — симфонічна поема</li>
+                    </ul>
+                </div>
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4">
+                    <h4 class="font-semibold text-accent-2 mb-2 text-sm">Також — Кирило Стеценко</h4>
+                    <p class="text-text-muted text-xs">1882–1922. Хоровий диригент та педагог. Директор Першої Київської народної консерваторії (1919). Вплинув на систему підготовки виконавців у ранньорадянський період.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SLIDE 6: FLUTE & OBOE — WOODEN WINDS ===== -->
+<div class="slide slide-6" data-slide="6">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:400px;height:400px;top:-80px;right:-70px;background:var(--color-accent-2);opacity:0.1;"></div>
+        <div class="blob" style="width:260px;height:260px;bottom:-50px;left:-30px;background:var(--color-accent-1);opacity:0.08;"></div>
+    </div>
+    <div class="content">
+        <p class="text-accent-2 uppercase tracking-[4px] text-xs mb-2 reveal">Дерев'яні духові • Флейта, гобой, кларнет, фагот</p>
+        <h2 class="font-display text-[clamp(1.8rem,4vw,2.8rem)] font-bold mb-5 reveal">Школа дерев'яних духових</h2>
+        <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4 reveal instrument-card">
+                <div style="font-size:1.8rem;margin-bottom:0.4rem;">🎼</div>
+                <h4 class="font-semibold text-accent-1 mb-1 text-xs">Флейта — Київська школа</h4>
+                <p class="text-text-muted text-xs">Олена Данилова (нар. 1970) — головний флейтист НАСКУ. Олексій Птуха — провідний педагог НМАУ, учень Трохименка.</p>
+            </div>
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4 reveal instrument-card">
+                <div style="font-size:1.8rem;margin-bottom:0.4rem;">🎵</div>
+                <h4 class="font-semibold text-accent-1 mb-1 text-xs">Гобой — Одеська лінія</h4>
+                <p class="text-text-muted text-xs">Ірина Цуркан — лауреат міжнародних конкурсів. Традиція гобоїстів Одеської академії бере коріння від В. Дробинського (1920-ті).</p>
+            </div>
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4 reveal instrument-card">
+                <div style="font-size:1.8rem;margin-bottom:0.4rem;">🎷</div>
+                <h4 class="font-semibold text-accent-1 mb-1 text-xs">Кларнет — Харків</h4>
+                <p class="text-text-muted text-xs">Іван Сєрий (засновник Ужгородської школи). Харків: Аркадій Штерн та Михайло Зубаль — довоєнні лідери кларнетної педагогіки.</p>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4 reveal">
+                <h4 class="text-accent-2 font-semibold text-xs mb-2">🎵 Фагот — унікальна традиція</h4>
+                <p class="text-text-muted text-xs">Михайло Кравченко (1898–1953) — перший штатний фаготист симфонічних оркестрів УРСР. Заклав методологію гри, яка живе досі в НМАУ.</p>
+            </div>
+            <div class="bg-glass-bg backdrop-blur-xl border-l-4 border-accent-2 rounded-r-xl p-4 reveal">
+                <p class="text-text-secondary text-xs">Кафедра дерев'яних духових НМАУ готує спеціалістів за профілями <strong class="text-accent-1">флейти, гобою, кларнета, фагота та саксофона</strong>. Конкурс вступників — 3–5 осіб на місце.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SLIDE 7: BRASS — TRUMPET SCHOOL ===== -->
+<div class="slide slide-7" data-slide="7">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:420px;height:420px;top:-100px;right:-80px;background:var(--color-accent-1);opacity:0.1;"></div>
+        <div class="blob" style="width:240px;height:240px;bottom:-50px;left:-30px;background:var(--color-accent-3);opacity:0.07;"></div>
+    </div>
+    <div class="content">
+        <p class="text-accent-2 uppercase tracking-[4px] text-xs mb-2 reveal">Мідні духові • Труба</p>
+        <h2 class="font-display text-[clamp(1.8rem,4vw,2.8rem)] font-bold mb-5 reveal">Київська трубна школа</h2>
+        <div class="grid grid-cols-2 gap-6 items-start">
+            <div class="flex flex-col gap-3 reveal">
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4">
+                    <h4 class="text-accent-1 font-semibold text-sm mb-1">Вільгельм Яблонський</h4>
+                    <p class="text-text-muted text-xs">Засновник та перший завідувач кафедри мідних духових Київської консерваторії. Виховав кілька генерацій трубачів, включаючи Посвалюка.</p>
+                </div>
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4">
+                    <h4 class="text-accent-1 font-semibold text-sm mb-1">Валерій Посвалюк (1947–2018)</h4>
+                    <p class="text-text-muted text-xs">Доктор мистецтвознавства. 30 років — соліст Нацопери. Президент Гільдії трубачів України. Перший виконавець Бранденбурзького концерту № 2 Баха на кларіно в Україні.</p>
+                </div>
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4">
+                    <h4 class="text-accent-1 font-semibold text-sm mb-1">Андрій Ільків (нар. ~1965)</h4>
+                    <p class="text-text-muted text-xs">Перше виконання кларіно в Україні — 1996 р. Артист YAMAHA. «Перший талант світу» — Тулуза, 1995 р. Квінтет «Київ-брас».</p>
+                </div>
+            </div>
+            <div class="reveal">
+                <h4 class="text-text-muted text-xs uppercase tracking-widest mb-3">Сучасні трубачі</h4>
+                <div class="flex flex-col gap-2">
+                    <div class="flex gap-2 items-center bg-glass-bg backdrop-blur-xl border border-glass-border rounded-lg px-4 py-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-accent-1 flex-shrink-0"></span>
+                        <span class="text-text-secondary text-xs"><strong class="text-accent-1">Валерій Богданов</strong> — Харківська школа, фундатор</span>
+                    </div>
+                    <div class="flex gap-2 items-center bg-glass-bg backdrop-blur-xl border border-glass-border rounded-lg px-4 py-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-accent-2 flex-shrink-0"></span>
+                        <span class="text-text-secondary text-xs"><strong class="text-accent-2">Ігор Гишка</strong> — Львів. Ювілей 75 р. (2023)</span>
+                    </div>
+                    <div class="flex gap-2 items-center bg-glass-bg backdrop-blur-xl border border-glass-border rounded-lg px-4 py-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-accent-3 flex-shrink-0"></span>
+                        <span class="text-text-secondary text-xs"><strong class="text-accent-3">Лідія Остап'юк</strong> — перша жінка-трубач в Україні</span>
+                    </div>
+                    <div class="flex gap-2 items-center bg-glass-bg backdrop-blur-xl border border-glass-border rounded-lg px-4 py-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-accent-1 flex-shrink-0"></span>
+                        <span class="text-text-secondary text-xs"><strong class="text-accent-1">Роман Білошицький</strong> — активний концертний соліст</span>
+                    </div>
+                    <div class="flex gap-2 items-center bg-glass-bg backdrop-blur-xl border border-glass-border rounded-lg px-4 py-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-accent-2 flex-shrink-0"></span>
+                        <span class="text-text-secondary text-xs"><strong class="text-accent-2">Микола Баланко</strong> — ансамблевий майстер, Suite for 5 Trumpets</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SLIDE 8: TROMBONE, HORN, TUBA ===== -->
+<div class="slide slide-8" data-slide="8">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:400px;height:400px;top:-80px;left:-70px;background:var(--color-accent-3);opacity:0.09;"></div>
+        <div class="blob" style="width:280px;height:280px;bottom:-50px;right:-40px;background:var(--color-accent-2);opacity:0.08;"></div>
+    </div>
+    <canvas class="particle-canvas-ambient" style="position:absolute;inset:0;z-index:1;"></canvas>
+    <div class="content">
+        <p class="text-accent-2 uppercase tracking-[4px] text-xs mb-2 reveal">Мідні духові • Тромбон, валторна, туба</p>
+        <h2 class="font-display text-[clamp(1.8rem,4vw,2.8rem)] font-bold mb-5 reveal">Низькі мідні та валторна</h2>
+        <div class="grid grid-cols-2 gap-5">
+            <div class="flex flex-col gap-3 reveal">
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span style="font-size:1.5rem;">🎷</span>
+                        <h4 class="text-accent-1 font-semibold text-sm">Тромбонна традиція — «Школа Блажевича»</h4>
+                    </div>
+                    <p class="text-text-muted text-xs">Вацлав Блажевич (1881–1942, Харків / Москва) — автор 26 концертних п'єс і «Школи для тромбона» (1934). Синтезував слов'янську та німецьку традиції. Його методика — основа підготовки трьох поколінь українських тромбоністів.</p>
+                </div>
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span style="font-size:1.5rem;">📯</span>
+                        <h4 class="text-accent-2 font-semibold text-sm">Валторна — сучасна генерація</h4>
+                    </div>
+                    <p class="text-text-muted text-xs">Петро Нефьодов — засновник школи валторни на Закарпатті. Михайло Резніченко — провідний валторніст Київської філармонії 1970–90-х рр.</p>
+                </div>
+            </div>
+            <div class="flex flex-col gap-3 reveal">
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span style="font-size:1.5rem;">🎺</span>
+                        <h4 class="text-accent-3 font-semibold text-sm">Туба та контрфагот</h4>
+                    </div>
+                    <p class="text-text-muted text-xs">Валентин Корж (Київ, НМАУ) — один з найдосвідченіших тубістів України. Гастролював з Національним симфонічним оркестром по Японії, Австрії, Кореї.</p>
+                </div>
+                <div class="bg-glass-bg backdrop-blur-xl border-l-4 border-accent-1 rounded-r-xl p-4">
+                    <p class="text-text-secondary text-xs">Україна — єдина пострадянська країна, де тромбон та туба мають <strong class="text-accent-1">окремі кафедри</strong> у кожній з 5 головних консерваторій. Методика Блажевича видана і перевидана понад 10 разів (1934–2005).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SLIDE 9: PERCUSSION ===== -->
+<div class="slide slide-9" data-slide="9">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:380px;height:380px;top:-80px;right:-70px;background:var(--color-accent-1);opacity:0.09;"></div>
+        <div class="blob" style="width:280px;height:280px;bottom:-50px;left:-40px;background:var(--color-accent-3);opacity:0.07;"></div>
+    </div>
+    <div class="content">
+        <p class="text-accent-2 uppercase tracking-[4px] text-xs mb-2 reveal">Ударні інструменти</p>
+        <h2 class="font-display text-[clamp(1.8rem,4vw,2.8rem)] font-bold mb-5 reveal">Школа ударних інструментів</h2>
+        <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4 reveal instrument-card">
+                <div style="font-size:2rem;margin-bottom:0.4rem;">🥁</div>
+                <h4 class="text-accent-1 font-semibold text-xs mb-1">Литаври / тімпані</h4>
+                <p class="text-text-muted text-xs">Михайло Порфиренко (Київ, 1930–70-ті) — першопрохідник сольної та оркестрової гри на тімпані в Україні.</p>
+            </div>
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4 reveal instrument-card">
+                <div style="font-size:2rem;margin-bottom:0.4rem;">🪘</div>
+                <h4 class="text-accent-1 font-semibold text-xs mb-1">Маримба / ксилофон</h4>
+                <p class="text-text-muted text-xs">Максим Коломієць — лауреат конкурсу Перкашн Арт, соліст НФО. Розробив власну методику для маримби у 5-ти восковій техніці.</p>
+            </div>
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4 reveal instrument-card">
+                <div style="font-size:2rem;margin-bottom:0.4rem;">🎶</div>
+                <h4 class="text-accent-1 font-semibold text-xs mb-1">Вібрафон / мульти-перк</h4>
+                <p class="text-text-muted text-xs">Андрій Береза (нар. 1985) — перший в Україні виконавець програми мульти-перкусіоніста. Записав CD сольного репертуару (2018).</p>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4 reveal">
+                <h4 class="text-accent-2 font-semibold text-xs mb-2">Кафедра ударних НМАУ</h4>
+                <p class="text-text-muted text-xs">Заснована 1940 р. Сьогодні — одна з найпотужніших у СНД. Програма охоплює: малий барабан, літаври, маримбу, вібрафон, ксилофон, мульти-перк.</p>
+            </div>
+            <div class="bg-glass-bg backdrop-blur-xl border-l-4 border-accent-3 rounded-r-xl p-4 reveal">
+                <p class="text-text-secondary text-xs">Щорічний <strong class="text-accent-1">Всеукраїнський конкурс виконавців на ударних</strong> (з 1998 р.) збирає учасників із 6+ регіонів та країн Східної Європи.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SLIDE 10: DENNIS ADU ===== -->
+<div class="slide slide-10" data-slide="10">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:500px;height:500px;top:-120px;right:-100px;background:var(--color-accent-1);opacity:0.12;"></div>
+        <div class="blob" style="width:300px;height:300px;bottom:-70px;left:-50px;background:var(--color-accent-2);opacity:0.09;"></div>
+        <div class="blob" style="width:200px;height:200px;top:40%;left:10%;background:var(--color-accent-3);opacity:0.07;"></div>
+    </div>
+    <canvas class="particle-canvas" style="position:absolute;inset:0;z-index:1;"></canvas>
+    <div class="content">
+        <p class="text-accent-3 uppercase tracking-[4px] text-xs mb-2 reveal">🌟 Унікальна постать сучасності</p>
+        <div class="grid grid-cols-2 gap-7 items-start">
+            <div>
+                <h2 class="font-display text-[clamp(1.6rem,3.5vw,2.5rem)] font-bold mb-1 reveal">Денніс Аду</h2>
+                <p class="text-accent-1 text-xs tracking-wide mb-4 reveal">Нар. 1987, Салтпонд, Гана → Кривий Ріг, Україна</p>
+                <div class="flex flex-col gap-2 reveal">
+                    <div class="flex gap-2 items-start">
+                        <span class="text-accent-3 mt-0.5 text-xs">✦</span>
+                        <p class="text-text-secondary text-xs"><strong class="text-accent-1">Феномен біографії:</strong> народився у Гані, у 2 роки переїхав до Кривого Рогу. У 7 років — перші заняття трубою, у 8 — запрошений до оркестру А. Гебеля.</p>
+                    </div>
+                    <div class="flex gap-2 items-start">
+                        <span class="text-accent-3 mt-0.5 text-xs">✦</span>
+                        <p class="text-text-secondary text-xs">Найвизначніший джазовий трубач України. Стиль — мейнстрім та хард-боп. Лідер Dennis Adu Big Band (2014), квінтету та септету.</p>
+                    </div>
+                    <div class="flex gap-2 items-start">
+                        <span class="text-accent-3 mt-0.5 text-xs">✦</span>
+                        <p class="text-text-secondary text-xs">Старший викладач та керівник Jazz Orchestra Київської муніципальної академії ім. Р. Глієра.</p>
+                    </div>
+                    <div class="flex gap-2 items-start">
+                        <span class="text-accent-3 mt-0.5 text-xs">✦</span>
+                        <p class="text-text-secondary text-xs">2022 — залишив трубу на місяць: вантажив медикаменти для фронту. Повернувся на сцену з новими силами.</p>
+                    </div>
+                    <div class="flex gap-2 items-start">
+                        <span class="text-accent-3 mt-0.5 text-xs">✦</span>
+                        <p class="text-text-secondary text-xs">Грав з: Gregory Porter, Curtis Fuller, Frank Lacy, Steve Slagle, Javon Jackson. Фестивалі: Millau en Jazz, Jazz à Vienne, Koktebel Jazz.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="reveal">
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-5 mb-3">
+                    <h4 class="font-semibold text-accent-3 mb-2 text-sm">🏆 Нагороди</h4>
+                    <ul class="flex flex-col gap-1 text-text-secondary text-xs">
+                        <li class="flex gap-2"><span class="text-accent-1">▸</span> «Кращий трубач» & «Кращий джазовий музикант» — DoJazz 2009</li>
+                        <li class="flex gap-2"><span class="text-accent-1">▸</span> Лауреат Koktebel Jazz Trophy</li>
+                        <li class="flex gap-2"><span class="text-accent-1">▸</span> Фулбрайтівська стипендія (США)</li>
+                    </ul>
+                </div>
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-5">
+                    <h4 class="font-semibold text-accent-2 mb-2 text-sm">🎵 Дискографія</h4>
+                    <ul class="flex flex-col gap-1 text-text-secondary text-xs">
+                        <li class="flex gap-2"><span class="text-accent-1">▸</span> "Influences" (2017)</li>
+                        <li class="flex gap-2"><span class="text-accent-1">▸</span> "Sunlight Above the Sky" (2021)</li>
+                        <li class="flex gap-2"><span class="text-accent-1">▸</span> Dennis Adu Septet — "Caribbean" (2023)</li>
+                        <li class="flex gap-2"><span class="text-accent-1">▸</span> «T.N.» (2024) — присвячений Тимофію Нечипоренку</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SLIDE 11: REGIONAL SCHOOLS ===== -->
+<div class="slide slide-11" data-slide="11">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:440px;height:440px;top:-100px;left:-70px;background:var(--color-accent-2);opacity:0.09;"></div>
+        <div class="blob" style="width:300px;height:300px;bottom:-60px;right:-40px;background:var(--color-accent-1);opacity:0.07;"></div>
+    </div>
+    <div class="content">
+        <p class="text-accent-2 uppercase tracking-[4px] text-xs mb-2 reveal">Географія майстерності</p>
+        <h2 class="font-display text-[clamp(1.8rem,4vw,2.8rem)] font-bold mb-5 reveal">Регіональні школи України</h2>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-3">
+                <div class="bg-glass-bg backdrop-blur-xl border-l-4 border-accent-1 rounded-r-xl p-4 reveal">
+                    <h4 class="font-semibold text-accent-1 text-xs mb-1">🏛️ Київська школа</h4>
+                    <p class="text-text-muted text-xs">НМАУ ім. Чайковського. Традиція Яблонський → Посвалюк → Ільків. Найстаріша, найпотужніша. Кафедри мідних, дерев'яних, ударних.</p>
+                </div>
+                <div class="bg-glass-bg backdrop-blur-xl border-l-4 border-accent-2 rounded-r-xl p-4 reveal">
+                    <h4 class="font-semibold text-accent-2 text-xs mb-1">🌊 Одеська школа</h4>
+                    <p class="text-text-muted text-xs">ОНМА ім. Нежданової. Середземноморський вплив, сильна гобойна і флейтова традиція. Зв'язки з болгарськими і румунськими школами.</p>
+                </div>
+                <div class="bg-glass-bg backdrop-blur-xl border-l-4 border-accent-3 rounded-r-xl p-4 reveal">
+                    <h4 class="font-semibold text-accent-3 text-xs mb-1">🌻 Харківська школа</h4>
+                    <p class="text-text-muted text-xs">ХНУМ ім. Котляревського. Традиція Богданова. Найсильніша кларнетна кафедра — методика Штерна-Зубаля.</p>
+                </div>
+            </div>
+            <div class="flex flex-col gap-3">
+                <div class="bg-glass-bg backdrop-blur-xl border-l-4 border-accent-1 rounded-r-xl p-4 reveal">
+                    <h4 class="font-semibold text-accent-1 text-xs mb-1">🦁 Львівська школа</h4>
+                    <p class="text-text-muted text-xs">ЛНМА ім. Лисенка. Центральноєвропейський вплив (Польща, Австрія). Ігор Гишка, Андрій Ільків. Камерне виконавство — флагман.</p>
+                </div>
+                <div class="bg-glass-bg backdrop-blur-xl border-l-4 border-accent-2 rounded-r-xl p-4 reveal">
+                    <h4 class="font-semibold text-accent-2 text-xs mb-1">🏰 Закарпатська школа</h4>
+                    <p class="text-text-muted text-xs">Ужгородський музичний коледж. Засновники — І. Д. Сєрий (кларнет) та П. М. Нефьодов (валторна). Угорський та чеський вплив у методиці.</p>
+                </div>
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-4 reveal">
+                    <p class="text-text-secondary text-xs"><span class="text-accent-1 font-semibold">Підсумок:</span> 5 регіональних шкіл + Київ. Кожна — <strong class="text-accent-1">власна методика та звуковий ідеал</strong>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SLIDE 12: TIMELINE ===== -->
+<div class="slide slide-12" data-slide="12">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:400px;height:400px;top:-80px;right:-70px;background:var(--color-accent-3);opacity:0.09;"></div>
+        <div class="blob" style="width:260px;height:260px;bottom:-50px;left:-30px;background:var(--color-accent-1);opacity:0.07;"></div>
+    </div>
+    <canvas class="particle-canvas-ambient" style="position:absolute;inset:0;z-index:1;"></canvas>
+    <div class="content">
+        <h2 class="font-display text-[clamp(1.8rem,4vw,2.8rem)] font-bold mb-5 reveal">Хронологія розвитку</h2>
+        <div class="relative pl-12 flex flex-col gap-3">
+            <div class="timeline-line"></div>
+            <div class="flex gap-3 items-start reveal">
+                <div class="timeline-dot" style="margin-top:3px;"></div>
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-3 flex-1">
+                    <p class="text-accent-1 text-xs font-bold uppercase tracking-widest">До XIX ст.</p>
+                    <p class="text-text-secondary text-xs">Трембіта, сопілка, козацька сурма, тулумбас. 100+ народних інструментів (Хоткевич, ~1900).</p>
+                </div>
+            </div>
+            <div class="flex gap-3 items-start reveal">
+                <div class="timeline-dot"></div>
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-3 flex-1">
+                    <p class="text-accent-1 text-xs font-bold uppercase tracking-widest">1868 / 1913</p>
+                    <p class="text-text-secondary text-xs">Музичне училище (1868), Консерваторія (1913). Перший ректор — Р. Гліер. Початок академічної педагогіки духових.</p>
+                </div>
+            </div>
+            <div class="flex gap-3 items-start reveal">
+                <div class="timeline-dot"></div>
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-3 flex-1">
+                    <p class="text-accent-1 text-xs font-bold uppercase tracking-widest">1920–1960-ті</p>
+                    <p class="text-text-secondary text-xs">Лятошинський (40+ р.), Яблонський — Київська трубна школа, Блажевич — тромбонна традиція.</p>
+                </div>
+            </div>
+            <div class="flex gap-3 items-start reveal">
+                <div class="timeline-dot"></div>
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-3 flex-1">
+                    <p class="text-accent-1 text-xs font-bold uppercase tracking-widest">1970–1990-ті</p>
+                    <p class="text-text-secondary text-xs">Посвалюк — 30 р. соліст Нацопери. Ільків грає кларіно (1996). «Київ-брас». Регіональні школи зміцніли.</p>
+                </div>
+            </div>
+            <div class="flex gap-3 items-start reveal">
+                <div class="timeline-dot" style="background:var(--color-accent-2);box-shadow:0 0 10px rgba(59,191,164,0.7);"></div>
+                <div class="bg-glass-bg backdrop-blur-xl border border-glass-border rounded-xl p-3 flex-1">
+                    <p class="text-accent-2 text-xs font-bold uppercase tracking-widest">2000 — сьогодні</p>
+                    <p class="text-text-secondary text-xs">Денніс Аду — джазова сенсація. Гільдія трубачів. Всеукраїнський конкурс ударних. Школа активна у воєнний час (2022+).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SLIDE 13: CLOSING ===== -->
+<div class="slide slide-13" data-slide="13">
+    <div class="gradient-mesh">
+        <div class="blob" style="width:550px;height:550px;top:-130px;right:-100px;background:var(--color-accent-1);opacity:0.12;"></div>
+        <div class="blob" style="width:350px;height:350px;bottom:-80px;left:-60px;background:var(--color-accent-2);opacity:0.1;"></div>
+        <div class="blob" style="width:220px;height:220px;top:35%;left:10%;background:var(--color-accent-3);opacity:0.08;"></div>
+    </div>
+    <canvas class="particle-canvas" style="position:absolute;inset:0;z-index:1;"></canvas>
+    <div class="content text-center">
+        <div class="hero-icons reveal" style="margin-bottom:1rem;">
+            <span class="hero-icon" style="font-size:2rem;">🪈</span>
+            <span class="hero-icon" style="font-size:2.8rem;">🎺</span>
+            <span class="hero-icon" style="font-size:2rem;">🥁</span>
+            <span class="hero-icon" style="font-size:2rem;">📯</span>
+        </div>
+        <h2 class="font-display text-[clamp(2rem,5vw,3.8rem)] font-bold mb-3 reveal"
+            style="background:linear-gradient(135deg,#C6A84B 0%,#efe8c4 50%,#3BBFA4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+            Музика, що живе й бореться
+        </h2>
+        <p class="text-text-secondary text-sm max-w-2xl mx-auto mb-6 reveal">
+            Від козацьких сурм до джазових сцен Відня й Філадельфії — українська виконавська школа духових та ударних зберігає неперервну традицію понад <strong style="-webkit-text-fill-color:#C6A84B;">1000 років</strong>.
+        </p>
+        <div class="grid grid-cols-4 gap-3 max-w-2xl mx-auto reveal">
+            <div style="border-top:1px solid rgba(198,168,75,0.25);padding-top:0.8rem;">
+                <p class="text-accent-1 text-2xl font-black glow-pulse" data-count="100">0+</p>
+                <p class="text-text-muted text-xs mt-1">народних інструментів</p>
+            </div>
+            <div style="border-top:1px solid rgba(59,191,164,0.25);padding-top:0.8rem;">
+                <p class="text-accent-2 text-2xl font-black glow-pulse" data-count="5">0</p>
+                <p class="text-text-muted text-xs mt-1">регіональних шкіл</p>
+            </div>
+            <div style="border-top:1px solid rgba(224,92,106,0.25);padding-top:0.8rem;">
+                <p class="text-accent-3 text-2xl font-black glow-pulse" data-count="110">0</p>
+                <p class="text-text-muted text-xs mt-1">р. академічної традиції</p>
+            </div>
+            <div style="border-top:1px solid rgba(198,168,75,0.25);padding-top:0.8rem;">
+                <p class="text-accent-1 text-2xl font-black glow-pulse" data-count="40">0</p>
+                <p class="text-text-muted text-xs mt-1">р. викладав Лятошинський</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<div class="nav-controls">
+    <button class="nav-btn" onclick="changeSlide(-1)">&#8249;</button>
+    <div class="slide-dots" id="dots"></div>
+    <button class="nav-btn" onclick="changeSlide(1)">&#8250;</button>
+    <span class="slide-counter" id="counter">1 / 13</span>
+</div>
+
+<script>
+    let current = 1;
+    const total = document.querySelectorAll('.slide').length;
+    const dotsContainer = document.getElementById('dots');
+    const counter = document.getElementById('counter');
+    for (let i = 1; i <= total; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'dot' + (i === 1 ? ' active' : '');
+        dot.onclick = () => goToSlide(i);
+        dotsContainer.appendChild(dot);
+    }
+    function goToSlide(n) {
+        const prev = document.querySelector('.slide.active');
+        const next = document.querySelector('.slide[data-slide="' + n + '"]');
+        if (prev) prev.classList.remove('active');
+        if (next) { next.classList.add('active'); animateSlide(next); }
+        current = n; updateNav();
+    }
+    function changeSlide(dir) { let next = current + dir; if (next < 1) next = total; if (next > total) next = 1; goToSlide(next); }
+    function updateNav() {
+        document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i + 1 === current));
+        counter.textContent = current + ' / ' + total;
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); changeSlide(1); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); changeSlide(-1); }
+    });
+    let touchStartX = 0;
+    document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+    document.addEventListener('touchend', (e) => { const diff = touchStartX - e.changedTouches[0].clientX; if (Math.abs(diff) > 50) changeSlide(diff > 0 ? 1 : -1); });
+
+    function animateSlide(slide) {
+        slide.querySelectorAll('.reveal').forEach((el, i) => {
+            el.style.transition = 'none'; el.style.opacity = '0'; el.style.transform = 'translateY(20px)'; el.offsetHeight;
+            const delay = i * 0.08;
+            el.style.transition = 'opacity 0.35s ease ' + delay + 's, transform 0.35s ease ' + delay + 's';
+            el.style.opacity = '1'; el.style.transform = 'translateY(0)';
+        });
+        animateSlideEffects(slide);
+    }
+
+    function animateSlideEffects(slide) {
+        slide.querySelectorAll('[data-count]:not(.counted)').forEach(el => {
+            el.classList.add('counted');
+            const target = parseInt(el.dataset.count);
+            let cur = 0; const step = target / 40;
+            const timer = setInterval(() => {
+                cur += step; if (cur >= target) { cur = target; clearInterval(timer); }
+                el.textContent = Math.round(cur).toLocaleString();
+            }, 30);
+        });
+        slide.querySelectorAll('.bar-fill:not(.fill-init)').forEach((bar, i) => {
+            bar.classList.add('fill-init');
+            bar.style.width = '0%'; bar.style.transition = 'width 0.5s ease ' + (i * 0.08) + 's';
+            bar.offsetHeight; bar.style.width = bar.dataset.width + '%';
+        });
+    }
+
+    document.addEventListener('mousemove', (e) => {
+        const sp = document.querySelector('.mouse-spotlight');
+        if (sp) sp.style.background = 'radial-gradient(600px circle at ' + e.clientX + 'px ' + e.clientY + 'px, rgba(198,168,75,0.05), transparent 40%)';
+    });
+
+    window.initParticles = function(canvas, options) {
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+        const interactive = options.interactive !== false, count = options.count || (interactive ? 55 : 18);
+        let mx = -1000, my = -1000;
+        const particles = Array.from({ length: count }, () => ({
+            x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
+            size: Math.random() * 2.5 + 0.8, alpha: Math.random() * 0.35 + 0.1
+        }));
+        if (interactive) {
+            canvas.addEventListener('mousemove', (e) => { const r = canvas.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; });
+            canvas.addEventListener('mouseleave', () => { mx = -1000; my = -1000; });
+        }
+        (function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                if (interactive) { const dx = p.x - mx, dy = p.y - my, dist = Math.sqrt(dx*dx+dy*dy); if (dist < 120) { const f = (120-dist)/120*2; p.vx += (dx/dist)*f*0.1; p.vy += (dy/dist)*f*0.1; } }
+                p.vx *= 0.98; p.vy *= 0.98; p.x += p.vx; p.y += p.vy;
+                if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
+                if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(198,168,75,' + p.alpha + ')'; ctx.fill();
+            });
+            requestAnimationFrame(animate);
+        })();
+    };
+    document.querySelectorAll('.particle-canvas').forEach(c => window.initParticles(c, { interactive: true, count: 55 }));
+    document.querySelectorAll('.particle-canvas-ambient').forEach(c => window.initParticles(c, { interactive: false, count: 18 }));
+
+    try { animateSlide(document.querySelector('.slide.active')); } catch(e) {}
+</script>
+</body>
+</html>
